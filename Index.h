@@ -9,11 +9,22 @@ UWAGA: Indeksy w organizacji indeksowo-sekwencyjnej nazywamy indeksami rzadkimi 
 nie wszystkie rekordy s¹ indeksowane, a jedynie tylko pierwsze na stronach obszaru g³ównego.
 */
 class Index : public Buffered {
+private:
+	struct IdxRec {
+		uint16_t key;
+		uint16_t page;
+	}*buffer;
+	uint32_t BUFFSIZE;
 
 public:
-	Index();
-	void ReadBlock(); //writeToBuff();
-	void WriteBlock(const char* block); //writeToFile();
+	Index(int32_t BUFFSIZE, string filename, ios_base::openmode flags);
+	void readBlock(); //writeToBuff();
+	void writeBlock(const char* block); //writeToFile();
+	uint16_t findPage(uint16_t key);
+	void writeIdxRecord(IdxRec rec);
+
+	void printIndex();
+	void clearFile();
 	~Index();
 };
 
