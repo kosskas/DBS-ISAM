@@ -14,9 +14,11 @@ int Index::readBlock() {
 	}
 	r_ptr += bytesRead;
 	return bytesRead;
+	//gdy przeczytano za ca³y plik bR=0, buf=0,0...
 }
 
 void Index::writeBlock(const char* block) {
+	//DOPOP
 	//sprawdz iloœæ w buforze
 	int size = 0;
 	for (IdxRec* i = buffer; i->key != 0; i++) {
@@ -41,22 +43,24 @@ int Index::findPage(int key) {
 				iKey = buffer[i].key;
 				iPage = buffer[i].page;
 				if (buffer[i].key == key) {
-					printf("Klucz %d powinien byc key=%d,page=%d\n", key, iKey, iPage);
+					//printf("Klucz %d powinien byc key=%d,page=%d\n", key, iKey, iPage);
 					return iPage;
 				}
 			}
 		}		
 	} while (bytesRead != 0);
-	printf("Klucz %d powinien byc key=%d,page=%d\n", key, iKey, iPage);
+	//printf("Klucz %d powinien byc key=%d,page=%d\n", key, iKey, iPage);
 	return iPage;
 	//je¿eli 0 to nie ma bo klucz < najmniejszy
 }
 
-void Index::writeIdxRecord(IdxRec rec)
-{
+void Index::writeIdxRecord(IdxRec rec) {
 	//wyszukaj czy taki jest
-	//jeœli jest to zg³oœ lub zamieñ
-	//jeœli nie to na koniec
+	//jeœli jest to zg³oœ lub zamieñ (przypadek gdy podmieniasz pierwsze rekordy w stronei)
+	// ???
+	//jeœli nie to na koniec (chyba nie bo reorg nast¹pi wczeœniej) chyba ¿e to pos³u¿y do reorg, bo wpisujemy ka¿dy wiêkszy od drugiego
+
+
 }
 
 void Index::printIndex() {

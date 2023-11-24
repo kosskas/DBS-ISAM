@@ -7,14 +7,13 @@ using namespace std;
 
 class Buffered {
 protected:
-	fstream* file;
-	string filename;
-	ios_base::openmode flags;
-	uint32_t w_ptr;
-	uint32_t r_ptr;
+	fstream* file=NULL;
+	string filename="";
+	ios_base::openmode flags=0;
+	uint32_t w_ptr=0;
+	uint32_t r_ptr=0;
 
 public:
-	Buffered() {}
 	Buffered(string filename, ios_base::openmode flags) : filename(filename), flags(flags) {
 		file = new fstream();
 		file->open(filename, flags);
@@ -22,7 +21,7 @@ public:
 		r_ptr = 0;
 	}
 	virtual int readBlock() = 0;
-	virtual void writeBlock(const char* block) = 0;
+	virtual void writeBlock(const char* block) = 0; //do zmainy
 	void resetPtr() {
 		r_ptr = 0;
 		w_ptr = 0;
@@ -36,7 +35,9 @@ public:
 		resetPtr();
 	}
 	~Buffered() {
-		file->close();
-		delete file;
+		if (file != NULL) {
+			file->close();
+			delete file;
+		}
 	}
 };

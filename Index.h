@@ -21,6 +21,7 @@ private:
 public:
 	Index(int32_t BUFFSIZE, string filename, ios_base::openmode flags);
 	int readBlock(); //writeToBuff();
+	
 	void writeBlock(const char* block); //writeToFile();
 	int findPage(int key);
 	void writeIdxRecord(IdxRec rec);

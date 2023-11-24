@@ -4,7 +4,6 @@ ISFile::ISFile(uint32_t BUFFSIZE, string filename, ios_base::openmode flags)
 {
 }
 
-
 int ISFile::readBlock()
 {
 	return 0;
