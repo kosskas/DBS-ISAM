@@ -132,10 +132,13 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="IBlock.h" />
+    <ClInclude Include="Buffered.h" />
     <ClInclude Include="Index.h" />
     <ClInclude Include="ISFile.h" />
     <ClInclude Include="Record.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="recGen.py" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

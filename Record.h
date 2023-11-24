@@ -5,9 +5,9 @@ struct Data {
 	Data(int a, int b, int h) : a(a), b(b), h(h) {}
 };
 struct Record {
-	uint16_t key; //2
+	int key; //2
 	Data data; //12
-	uint16_t ofptr; //2
+	int ofptr; //2
 	Record() : key(0), data({0,0,0}), ofptr(0) {}
 	Record(int key, Data data) : key(key), data(data), ofptr(0) {}
 };

@@ -1,11 +1,13 @@
 #include "ISFile.h"
 
-ISFile::ISFile(string filename, uint32_t BUFFSIZE, ios_base::openmode flags)
+ISFile::ISFile(uint32_t BUFFSIZE, string filename, ios_base::openmode flags)
 {
 }
 
-void ISFile::readBlock()
+
+int ISFile::readBlock()
 {
+	return 0;
 }
 
 void ISFile::writeBlock(const char* block)

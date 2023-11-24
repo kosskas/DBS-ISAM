@@ -13,18 +13,17 @@ nie wszystkie rekordy s¹ indeksowane, a jedynie tylko pierwsze na stronach obsza
 class Index : public Buffered {
 private:
 	struct IdxRec {
-		uint16_t key;
-		uint16_t page;
+		int key;
+		int page;
 	}*buffer;
 	uint32_t BUFFSIZE;
 
 public:
 	Index(int32_t BUFFSIZE, string filename, ios_base::openmode flags);
-	void readBlock(); //writeToBuff();
+	int readBlock(); //writeToBuff();
 	void writeBlock(const char* block); //writeToFile();
-	uint16_t findPage(uint16_t key);
+	int findPage(int key);
 	void writeIdxRecord(IdxRec rec);
-
 	void printIndex();
 	~Index();
 };

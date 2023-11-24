@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <math.h>
+#include "Index.h"
 
 using namespace std;
 
@@ -32,5 +33,13 @@ nie wszystkie rekordy są indeksowane, a jedynie tylko pierwsze na stronach obsz
 */
 
 int main(int argc, char** argv) {
+	Index idx(5, "idx1", ios::binary | ios::in | ios::out);
+	idx.printIndex();
+	idx.resetPtr();
+	for (int i = 5; i < 200; i += 5) {
+		idx.resetPtr();
+		idx.findPage(i);
+	}
+
 	return 0;
 }

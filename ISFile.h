@@ -21,7 +21,7 @@ private:
 	Record *buffer;
 public:
 	ISFile(uint32_t BUFFSIZE, string filename, ios_base::openmode flags);
-	void readBlock(); //writeToBuff();
+	int readBlock(); //writeToBuff();
 	void writeBlock(const char* block); //writeToFile();
 
 	Record searchRecord(uint16_t key);

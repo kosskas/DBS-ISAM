@@ -21,16 +21,19 @@ public:
 		w_ptr= 0;
 		r_ptr = 0;
 	}
-	virtual void readBlock() = 0;
+	virtual int readBlock() = 0;
 	virtual void writeBlock(const char* block) = 0;
-	void clearFile() {
-		file->close();
-		file->open(filename, flags | ios::trunc);
+	void resetPtr() {
 		r_ptr = 0;
 		w_ptr = 0;
 		file->clear();
 		file->seekg(r_ptr, ios::beg);
 		file->seekp(w_ptr, ios::beg);
+	}
+	void clearFile() {
+		file->close();
+		file->open(filename, flags | ios::trunc);
+		resetPtr();
 	}
 	~Buffered() {
 		file->close();
