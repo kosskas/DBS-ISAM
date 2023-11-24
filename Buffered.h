@@ -14,6 +14,7 @@ protected:
 	uint32_t r_ptr;
 
 public:
+	Buffered() {}
 	Buffered(string filename, ios_base::openmode flags) : filename(filename), flags(flags) {
 		file = new fstream();
 		file->open(filename, flags);
@@ -22,6 +23,15 @@ public:
 	}
 	virtual void readBlock() = 0;
 	virtual void writeBlock(const char* block) = 0;
+	void clearFile() {
+		file->close();
+		file->open(filename, flags | ios::trunc);
+		r_ptr = 0;
+		w_ptr = 0;
+		file->clear();
+		file->seekg(r_ptr, ios::beg);
+		file->seekp(w_ptr, ios::beg);
+	}
 	~Buffered() {
 		file->close();
 		delete file;
