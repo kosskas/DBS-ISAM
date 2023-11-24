@@ -3,35 +3,31 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "IBlock.h"
+#include "Buffered.h"
 #include "Index.h"
 #include "Record.h"
 using namespace std;
 
 
 
-class ISFile : public Block {
+class ISFile : public Buffered {
 private:
-	fstream* file;
-	string filename;
-	ios_base::openmode flags;
-	uint32_t r_ptr;
-	uint32_t w_ptr;
-	uint32_t r_idx;
-	uint32_t w_idx;
 
 
-	Record buffer[BUFFSIZE] = { Record() };
+	Index idx;
+
+	uint32_t BUFFSIZE;
+
+	//Record buffer[BUFFSIZE] = { Record() };
 public:
-	void writeToBuff();
-	void writeToFile();
-
-	void forceWriteRecord(Record rec);
-
 	ISFile(string filename, ios_base::openmode flags);
-	Record readNext();
+	void ReadBlock(); //writeToBuff();
+	void WriteBlock(const char* block); //writeToFile();
 
-	void writeRecord(Record rec);
+	Record searchRecord(uint16_t key);
+	Record insertRecord(uint16_t key, Data data);
+	Record removeRecord(uint16_t key);
+
 
 	void resetCursor();
 	void resetBufferPtr();
