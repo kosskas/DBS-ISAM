@@ -26,7 +26,6 @@ public:
 	void writeIdxRecord(IdxRec rec);
 
 	void printIndex();
-	void clearFile();
 	~Index();
 };
 

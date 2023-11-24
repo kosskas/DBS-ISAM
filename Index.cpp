@@ -15,10 +15,14 @@ void Index::readBlock() {
 }
 
 void Index::writeBlock(const char* block) {
-
+	//sprawdz iloœæ w buforze
+	int size = 0;
+	for (IdxRec* i = buffer; i->key != 0; i++) {
+		size++;
+	}
 	file->seekp(w_ptr);
-	file->write(block, sizeof(IdxRec) * BUFFSIZE);
-	w_ptr += sizeof(IdxRec) * BUFFSIZE;
+	file->write(block, sizeof(IdxRec) * size);
+	w_ptr += sizeof(IdxRec) * size;
 }
 
 uint16_t Index::findPage(uint16_t key) {
