@@ -14,13 +14,14 @@ void Index::readBlock() {
 	r_ptr += bytesRead;
 }
 
-void Index::writeBlock(const char* block)
-{
+void Index::writeBlock(const char* block) {
+
+	file->seekp(w_ptr);
+	file->write(block, sizeof(IdxRec) * BUFFSIZE);
+	w_ptr += sizeof(IdxRec) * BUFFSIZE;
 }
 
-uint16_t Index::findPage(uint16_t key)
-{
-	return 0;
+uint16_t Index::findPage(uint16_t key) {
 }
 
 void Index::writeIdxRecord(IdxRec rec)
