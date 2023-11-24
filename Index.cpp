@@ -1,6 +1,6 @@
 #include "Index.h"
 
-Index::Index(int32_t BUFFSIZE, string filename, ios_base::openmode flags) {
+Index::Index(int32_t BUFFSIZE, string filename, ios_base::openmode flags) : Buffered(filename, flags){
 	this->BUFFSIZE = BUFFSIZE;
 	buffer = new IdxRec[BUFFSIZE];
 }
