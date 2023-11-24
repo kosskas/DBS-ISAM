@@ -22,20 +22,36 @@ void Index::writeBlock(const char* block) {
 }
 
 uint16_t Index::findPage(uint16_t key) {
+	r_ptr = 0;
+	bool found = false;
+	while (!buffer[0].key) {
+		readBlock();
+		for (IdxRec* i = buffer; i->key != 0; i++) {
+			if (i->key == key)
+				return i->page;
+		}
+	}
+	return NOTFOUND;
 }
 
 void Index::writeIdxRecord(IdxRec rec)
 {
+
 }
 
-void Index::printIndex()
-{
-}
-
-void Index::clearFile()
-{
+void Index::printIndex() {
+	r_ptr = 0;
+	bool found = false;
+	printf("KEY -- PAGE\n");
+	while (!buffer[0].key) {
+		readBlock();
+		for (IdxRec* i = buffer; i->key != 0; i++) {
+			printf("%d -- %d\n", i->key, i->page);
+		}
+	}
 }
 
 Index::~Index()
 {
+	delete buffer;
 }

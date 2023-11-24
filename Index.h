@@ -1,6 +1,8 @@
 #pragma once
 #include "Buffered.h"
 
+#define NOTFOUND 0xFFFF
+
 /*
 Zazwyczaj, bi >> 1 i SIN <<SN, zatem przeszukiwanie indeksu na dysku jest bardzo szybkie
 (lub indeks mieœci siê w pamiêci operacyjnej i w ogóle nie s¹ potrzebne dostêpy do dysku).
