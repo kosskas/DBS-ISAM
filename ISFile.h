@@ -26,14 +26,18 @@ public:
 	void writeBlock(); //writeToFile();
 	//readPage(page)
 
-	Record searchRecord(int key);
+	//returns page
+	int searchRecord(int key);
+
 	Record insertRecord(int key, Data data);
 	Record removeRecord(int key);
 	//reorg
 	//getOF
-
+	void reorganiseFile();
 
 	void printRecords();
+	void printStruct();
+	void printOF();
 
 	//void printBuffer();
 	~ISFile();

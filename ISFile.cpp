@@ -5,6 +5,10 @@ ISFile::ISFile(uint32_t BUFFSIZE, string filename, ios_base::openmode flags) : B
 	this->BUFFSIZE = BUFFSIZE;
 	buffer = new Record[BUFFSIZE];
 	memset(buffer, 0, sizeof(Record) * BUFFSIZE);
+
+	///moze byc inny buffsize
+	idx = NULL;
+	idx = new Index(5, "idx", flags);
 }
 
 int ISFile::readBlock() {
@@ -17,6 +21,7 @@ int ISFile::readBlock() {
 	return bytesRead;
 }
 
+
 void ISFile::writeBlock() {
 	const char* serialRec = (const char*)buffer;
 	file->seekp(w_ptr);
@@ -28,17 +33,37 @@ void ISFile::writeBlock() {
 	w_ptr += sizeof(Record) * BUFFSIZE;
 }
 
-Record ISFile::searchRecord(int key)
-{
+int ISFile::searchRecord(int key) {
+	return 0;//pageno;
+}
+
+Record ISFile::insertRecord(int key, Data data) {
 	return Record();
 }
 
-Record ISFile::insertRecord(int key, Data data)
-{
+Record ISFile::removeRecord(int key) {
 	return Record();
 }
 
-Record ISFile::removeRecord(int key)
-{
-	return Record();
+void ISFile::reorganiseFile() {
+
+}
+
+void ISFile::printRecords() {
+
+}
+
+void ISFile::printStruct() {
+
+}
+
+void ISFile::printOF() {
+
+}
+
+ISFile::~ISFile() {
+	if (idx)
+		delete idx;
+	if (buffer)
+		delete[] buffer;
 }

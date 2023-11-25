@@ -2,7 +2,7 @@
 #include <string>
 #include <math.h>
 #include "Index.h"
-
+#include "ISFile.h"
 using namespace std;
 
 
@@ -31,9 +31,57 @@ UWAGA: Indeksy w organizacji indeksowo-sekwencyjnej nazywamy indeksami rzadkimi 
 nie wszystkie rekordy są indeksowane, a jedynie tylko pierwsze na stronach obszaru głównego.
 
 */
-
+void checkIdx();
 int main(int argc, char** argv) {
-	Index idx(5, "idx1", ios::binary | ios::in | ios::out);
+
+	///rozróżnienie czy od nowa wszystko
+	//checkIdx();
+    ISFile file(10, "isfile", ios::binary | ios::in | ios::out);
+    
+    char cmd;
+    int key = 0,a=0,b=0,h=0;
+    while (cin >> cmd) {
+        if (cmd == '+') {
+            cin >> key>>a>>b>>h;
+            file.insertRecord(key, { a, b, h });
+        }
+        if (cmd == '-') {
+            cin >> key;
+
+        }
+        if (cmd == '?') {
+            cin >> key;
+            if (Tree.Search(key))
+                wcout << "1\n";
+            else
+                wcout << "0\n";
+        }
+        if (cmd == 'p')
+            Tree.PrintTree();
+        if (cmd == 'b')
+            wcout << Tree.GetRootBlackHeight() << '\n';
+        if (cmd == 'P')
+            Tree.PrintInOrder();
+        if (cmd == 'c')
+            Tree.Clear();
+        if (cmd == 'r')
+            wcout << Tree.GetRootKey() << '\n';
+        if (cmd == 'm')
+            wcout << Tree.GetMin() << '\n';
+        if (cmd == 'M')
+            wcout << Tree.GetMax() << '\n';
+        if (cmd == 's')
+            wcout << Tree.GetSize() << '\n';
+        if (cmd == 'q')
+            break;
+    }
+
+    
+	return 0;
+}
+
+void checkIdx() {
+	Index idx(5, "idx1", ios::binary | ios::in | ios::out | ios::trunc);
 	idx.clearFile();
 
 	idx.writeIdxRecord(1, 1);
@@ -47,12 +95,8 @@ int main(int argc, char** argv) {
 	idx.swapKey(5, 6);
 	idx.printIndex();
 
-	
-for (int i = 1; i < 24; i++) {
-	idx.readIdxRecord(i);
-}
 
-
-
-	return 0;
+	for (int i = 1; i < 24; i++) {
+		idx.readIdxRecord(i);
+	}
 }

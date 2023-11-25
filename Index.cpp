@@ -124,5 +124,5 @@ void Index::printIndex() {
 
 Index::~Index() {
 	if(buffer)
-		delete buffer;
+		delete[] buffer;
 }
