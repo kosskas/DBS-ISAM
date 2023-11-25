@@ -16,7 +16,7 @@ using namespace std;
 class ISFile : public Buffered {
 private:
 	//ofptr
-
+	uint32_t ofPtr;
 
 	//paging od 0!!!
 	uint32_t BUFFSIZE;
@@ -33,8 +33,10 @@ public:
 	//returns page
 	int searchRecord(int key);
 
-	Record insertRecord(int key, Data data);
-	Record removeRecord(int key);
+	void insertRecord(int key, Data data);
+	void removeRecord(int key);
+
+	void insertToOf(int key, Data data);
 	//reorg
 	//getOF
 	void createIndex();
