@@ -34,33 +34,29 @@ nie wszystkie rekordy są indeksowane, a jedynie tylko pierwsze na stronach obsz
 
 int main(int argc, char** argv) {
 	Index idx(5, "idx1", ios::binary | ios::in | ios::out);
-	idx.printIndex();
-	idx.resetPtr();
-
-	idx.writeIdxRecord(1235, 1);
-	idx.writeIdxRecord(1, 1);
-	idx.writeIdxRecord(2, 1);
-	idx.writeIdxRecord(3, 1);
-	idx.writeIdxRecord(5, 1);
-
-	idx.resetPtr();
-	idx.printIndex();
-	idx.resetPtr();
-	idx.swapKey(5, 2137);
-	idx.resetPtr();
-	idx.printIndex();
-
 	idx.clearFile();
-	idx.writeIdxRecord(1234, 1);
+
+	idx.writeIdxRecord(1, 1);
+	idx.writeIdxRecord(7, 1);
+	idx.writeIdxRecord(9, 1);
+	idx.writeIdxRecord(14, 1);
+	idx.writeIdxRecord(19, 1);
+	idx.writeIdxRecord(22, 1);
+
+	idx.resetPtr();
+	idx.printIndex();
+	idx.resetPtr();
+	idx.swapKey(5, 6);
 	idx.resetPtr();
 	idx.printIndex();
 
-	/*
-	for (int i = 5; i < 200; i += 5) {
-		idx.resetPtr();
-		idx.readIdxRecord(i);
-	}
-	*/
+	
+for (int i = 1; i < 24; i++) {
+	idx.resetPtr();
+	idx.readIdxRecord(i);
+}
+
+
 
 	return 0;
 }

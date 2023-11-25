@@ -1,6 +1,7 @@
 #include "Index.h"
 
 Index::Index(int32_t BUFFSIZE, string filename, ios_base::openmode flags) : Buffered(filename, flags){
+	buffer = NULL;
 	this->BUFFSIZE = BUFFSIZE;
 	buffer = new IdxRec[BUFFSIZE];
 	memset(buffer, 0, sizeof(IdxRec) * BUFFSIZE);
@@ -41,7 +42,7 @@ int Index::readIdxRecord(int key) {
 	do {
 		bytesRead = readBlock();
 		for (int i = 0; i < BUFFSIZE; i++) {
-			if (key >= buffer[i].key) {
+			if (key >= buffer[i].key && buffer[i].key != 0) {
 				iKey = buffer[i].key;
 				iPage = buffer[i].page;
 				if (buffer[i].key == key) {
@@ -121,7 +122,7 @@ void Index::printIndex() {
 	}
 }
 
-Index::~Index()
-{
-	delete buffer;
+Index::~Index() {
+	if(buffer)
+		delete buffer;
 }
