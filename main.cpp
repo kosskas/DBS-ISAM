@@ -36,10 +36,31 @@ int main(int argc, char** argv) {
 	Index idx(5, "idx1", ios::binary | ios::in | ios::out);
 	idx.printIndex();
 	idx.resetPtr();
+
+	idx.writeIdxRecord(1235, 1);
+	idx.writeIdxRecord(1, 1);
+	idx.writeIdxRecord(2, 1);
+	idx.writeIdxRecord(3, 1);
+	idx.writeIdxRecord(5, 1);
+
+	idx.resetPtr();
+	idx.printIndex();
+	idx.resetPtr();
+	idx.swapKey(5, 2137);
+	idx.resetPtr();
+	idx.printIndex();
+
+	idx.clearFile();
+	idx.writeIdxRecord(1234, 1);
+	idx.resetPtr();
+	idx.printIndex();
+
+	/*
 	for (int i = 5; i < 200; i += 5) {
 		idx.resetPtr();
-		idx.findPage(i);
+		idx.readIdxRecord(i);
 	}
+	*/
 
 	return 0;
 }

@@ -17,14 +17,15 @@ private:
 		int page;
 	}*buffer;
 	uint32_t BUFFSIZE;
-
+	int nOfBuff;
 public:
 	Index(int32_t BUFFSIZE, string filename, ios_base::openmode flags);
 	int readBlock(); //writeToBuff();
-	
-	void writeBlock(const char* block); //writeToFile();
-	int findPage(int key);
-	void writeIdxRecord(IdxRec rec);
+	void writeBlock(); //writeToFile();
+	int readIdxRecord(int key);
+	void writeIdxRecord(int key, int page);
+	void swapKey(int odlKey, int key);
+
 	void printIndex();
 	~Index();
 };

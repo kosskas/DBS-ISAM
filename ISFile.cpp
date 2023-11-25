@@ -9,7 +9,7 @@ int ISFile::readBlock()
 	return 0;
 }
 
-void ISFile::writeBlock(const char* block)
+void ISFile::writeBlock()
 {
 }
 

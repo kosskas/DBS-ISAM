@@ -22,7 +22,7 @@ private:
 public:
 	ISFile(uint32_t BUFFSIZE, string filename, ios_base::openmode flags);
 	int readBlock(); //writeToBuff();
-	void writeBlock(const char* block); //writeToFile();
+	void writeBlock(); //writeToFile();
 	//readPage(page)
 
 	Record searchRecord(uint16_t key);

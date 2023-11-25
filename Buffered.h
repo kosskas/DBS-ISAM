@@ -14,6 +14,7 @@ protected:
 	uint32_t r_ptr=0;
 
 public:
+	Buffered() {}
 	Buffered(string filename, ios_base::openmode flags) : filename(filename), flags(flags) {
 		file = new fstream();
 		file->open(filename, flags);
@@ -21,7 +22,7 @@ public:
 		r_ptr = 0;
 	}
 	virtual int readBlock() = 0;
-	virtual void writeBlock(const char* block) = 0; //do zmainy
+	virtual void writeBlock() = 0;
 	void resetPtr() {
 		r_ptr = 0;
 		w_ptr = 0;
