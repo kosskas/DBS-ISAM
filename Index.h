@@ -17,7 +17,7 @@ private:
 		int page;
 	}*buffer;
 	uint32_t BUFFSIZE;
-	int nOfBuff;
+	//int nOfBuff;
 public:
 	Index(int32_t BUFFSIZE, string filename, ios_base::openmode flags);
 	int readBlock(); //writeToBuff();

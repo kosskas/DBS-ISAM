@@ -12,7 +12,7 @@ using namespace std;
 
 class ISFile : public Buffered {
 private:
-
+	//ofptr
 
 	Index* idx;
 
@@ -21,20 +21,18 @@ private:
 	Record *buffer;
 public:
 	ISFile(uint32_t BUFFSIZE, string filename, ios_base::openmode flags);
-	int readBlock(); //writeToBuff();
+	int readBlock();
+	//writeToBuff();
 	void writeBlock(); //writeToFile();
 	//readPage(page)
 
-	Record searchRecord(uint16_t key);
-	Record insertRecord(uint16_t key, Data data);
-	Record removeRecord(uint16_t key);
+	Record searchRecord(int key);
+	Record insertRecord(int key, Data data);
+	Record removeRecord(int key);
+	//reorg
+	//getOF
 
 
-	//void resetCursor();
-	//void resetBufferPtr();
-	//void clearBuffer();
-
-	void clearFile();
 	void printRecords();
 
 	//void printBuffer();

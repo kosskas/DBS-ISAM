@@ -14,7 +14,7 @@ int Index::readBlock() {
 		memset((char*)buffer + bytesRead, 0, sizeof(IdxRec) * BUFFSIZE - bytesRead); //jeœli przeczytano mniej ni¿ ca³¹ stronê, wyzeruj dalsze
 	}
 	r_ptr += bytesRead;
-	nOfBuff = bytesRead / sizeof(IdxRec);
+	//nOfBuff = bytesRead / sizeof(IdxRec);
 	return bytesRead;
 	//gdy przeczytano za ca³y plik bR=0, buf=0,0...
 }
@@ -76,7 +76,7 @@ void Index::writeIdxRecord(int key, int page) {
 			if (buffer[i].key == 0) {
 				buffer[i].key = key;
 				buffer[i].page = page;
-				nOfBuff++;
+				//nOfBuff++;
 				w_ptr = r_ptr - bytesRead;
 				file->clear();
 				writeBlock();
