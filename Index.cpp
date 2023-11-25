@@ -111,12 +111,12 @@ void Index::swapKey(int odlKey, int key) {
 
 void Index::printIndex() {
 	resetPtr();
-	printf("KEY -- PAGE\n");
+	printf("KEY\tPAGE\n");
 	int bytesRead = 0;
 	while(bytesRead = readBlock()){
 		printf("\tPrzeczytano %d\n", bytesRead);
 		for (int i = 0; i < BUFFSIZE; i++) {
-			printf("%d -- %d\n", buffer[i].key, buffer[i].page);
+			printf("%d\t%d\n", buffer[i].key, buffer[i].page);
 		}
 	}
 }

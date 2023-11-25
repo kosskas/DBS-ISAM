@@ -6,10 +6,15 @@ ISFile::ISFile(uint32_t BUFFSIZE, string filename, ios_base::openmode flags) : B
 	buffer = new Record[BUFFSIZE];
 	memset(buffer, 0, sizeof(Record) * BUFFSIZE);
 	///zlokalizuj OF
-	///moze byc inny buffsize
+	///moze byc inny buffsize - nie moze
 	idx = NULL;
 	idx = new Index(BUFFSIZE, "idx1", flags | ios::trunc);
-	CreateIndex();
+	createIndex();
+
+	printf("bf = %d\nbi = %d\n",
+		int((sizeof(Record) * BUFFSIZE) / sizeof(Record)),
+		int((sizeof(Record) * BUFFSIZE) / sizeof(Index::IdxRec)));
+
 }
 
 int ISFile::readBlock() {
@@ -19,6 +24,7 @@ int ISFile::readBlock() {
 		memset((char*)buffer + bytesRead, 0, sizeof(Record) * BUFFSIZE - bytesRead); //jeœli przeczytano mniej ni¿ ca³¹ stronê, wyzeruj dalsze
 	}
 	r_ptr += bytesRead;
+
 	return bytesRead;
 }
 
@@ -37,16 +43,20 @@ void ISFile::writeBlock() {
 int ISFile::searchRecord(int key) {
 	resetPtr();
 	int idxpage = idx->readIdxRecord(key);
-	//je¿eli 0 to jest mniejszy ni¿ idx na 1 stronie
-	if (idxpage == 0)
-		return 0;
-	//istnieje strona
-	int page = idxpage * BUFFSIZE;
+
+	//PAGE MO¯E BYÆ 0!! bo znalaz³
+	int page = idxpage * (sizeof(Record) * BUFFSIZE);
 	r_ptr = page;
 	int bytesRead = readBlock();
 	for (int i = 0; i < BUFFSIZE; i++) {
-		if (buffer->key == key)
+		if (buffer[i].key == key)
 			return page;
+	}
+	if (page == 0 && buffer[0].key > key) {
+		//je¿eli 0 to jest mniejszy ni¿ idx na 1 stronie
+		//istnieje strona
+		//printf("Mniejszy niz");
+		return BEFOREZERO;
 	}
 	return NOTFOUND;//pageno;
 }
@@ -59,6 +69,18 @@ Record ISFile::removeRecord(int key) {
 	return Record();
 }
 
+
+void ISFile::createIndex() {
+	resetPtr();
+	int bytesRead = 0;
+	int page = 0;
+	while (bytesRead = readBlock()) {
+		//weŸ pierwszy i go zapisz do indeksu
+		idx->writeIdxRecord(buffer[0].key, page++);
+	}
+	//idx.resetPtr
+}
+
 void ISFile::reorganiseFile() {
 
 }
@@ -69,7 +91,8 @@ void ISFile::clearFile() {
 }
 
 void ISFile::printRecords() {
-
+	//print in order
+	//czyli w kolejnoœci nawet przechodz¹c po OF
 }
 
 void ISFile::printStruct() {

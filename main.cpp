@@ -36,8 +36,9 @@ int main(int argc, char** argv) {
 
 	///rozróżnienie czy od nowa wszystko
 	//checkIdx();
-    ISFile file(10, "file1", ios::binary | ios::in | ios::out);
-    
+    ISFile file(6, "file1", ios::binary | ios::in | ios::out);
+    file.printStruct();
+    file.idx->printIndex();
     char cmd;
     int key = 0,a=0,b=0,h=0;
     while (cin >> cmd) {
@@ -52,7 +53,7 @@ int main(int argc, char** argv) {
         if (cmd == '?') {
             cin >> key;
             int ret = file.searchRecord(key);
-            if (ret == 1)
+            if (ret >= 0)
                 cout << "1\n";
             else if(ret == NOTFOUND)
                 cout << "0\n";

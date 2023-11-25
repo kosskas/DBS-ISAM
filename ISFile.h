@@ -6,9 +6,11 @@
 #include "Buffered.h"
 #include "Index.h"
 #include "Record.h"
+#include <math.h>
 using namespace std;
 
 #define NOTFOUND 0xFFFFFFFF
+#define BEFOREZERO 0xFFFFFFFE
 
 
 class ISFile : public Buffered {
@@ -16,7 +18,7 @@ private:
 	//ofptr
 
 
-
+	//paging od 0!!!
 	uint32_t BUFFSIZE;
 
 	Record *buffer;
@@ -35,6 +37,7 @@ public:
 	Record removeRecord(int key);
 	//reorg
 	//getOF
+	void createIndex();
 	void reorganiseFile();
 	void clearFile();
 
