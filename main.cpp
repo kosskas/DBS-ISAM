@@ -47,31 +47,23 @@ int main(int argc, char** argv) {
         }
         if (cmd == '-') {
             cin >> key;
-
+            file.removeRecord(key);
         }
         if (cmd == '?') {
             cin >> key;
-            if (Tree.Search(key))
-                wcout << "1\n";
+            if (file.searchRecord(key))
+                cout << "1\n";
             else
-                wcout << "0\n";
+                cout << "0\n";
         }
         if (cmd == 'p')
-            Tree.PrintTree();
-        if (cmd == 'b')
-            wcout << Tree.GetRootBlackHeight() << '\n';
+            file.printRecords();
         if (cmd == 'P')
-            Tree.PrintInOrder();
+            file.printStruct();
+        if (cmd == 'o')
+            file.printOF();
         if (cmd == 'c')
-            Tree.Clear();
-        if (cmd == 'r')
-            wcout << Tree.GetRootKey() << '\n';
-        if (cmd == 'm')
-            wcout << Tree.GetMin() << '\n';
-        if (cmd == 'M')
-            wcout << Tree.GetMax() << '\n';
-        if (cmd == 's')
-            wcout << Tree.GetSize() << '\n';
+            file.clearFile();
         if (cmd == 'q')
             break;
     }

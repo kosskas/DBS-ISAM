@@ -30,7 +30,7 @@ public:
 		file->seekg(r_ptr, ios::beg);
 		file->seekp(w_ptr, ios::beg);
 	}
-	void clearFile() {
+	virtual void clearFile() {
 		file->close();
 		file->open(filename, flags | ios::trunc);
 		resetPtr();

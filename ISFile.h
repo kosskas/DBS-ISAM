@@ -34,10 +34,12 @@ public:
 	//reorg
 	//getOF
 	void reorganiseFile();
+	void clearFile();
 
 	void printRecords();
 	void printStruct();
 	void printOF();
+
 
 	//void printBuffer();
 	~ISFile();

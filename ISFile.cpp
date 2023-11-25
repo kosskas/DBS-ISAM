@@ -49,6 +49,10 @@ void ISFile::reorganiseFile() {
 
 }
 
+void ISFile::clearFile() {
+
+}
+
 void ISFile::printRecords() {
 
 }
