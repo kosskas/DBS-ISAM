@@ -18,6 +18,14 @@ int ISFile::readBlock() {
 }
 
 void ISFile::writeBlock() {
+	const char* serialRec = (const char*)buffer;
+	file->seekp(w_ptr);
+	size_t poc = file->tellp();
+	file->write(serialRec, sizeof(Record) * BUFFSIZE);
+	size_t written = file->tellp();
+	written = written - poc;
+	printf("Zapisano %d\n", written);
+	w_ptr += sizeof(Record) * BUFFSIZE;
 }
 
 Record ISFile::searchRecord(int key)
