@@ -43,16 +43,12 @@ int main(int argc, char** argv) {
 	idx.writeIdxRecord(19, 1);
 	idx.writeIdxRecord(22, 1);
 
-	idx.resetPtr();
 	idx.printIndex();
-	idx.resetPtr();
 	idx.swapKey(5, 6);
-	idx.resetPtr();
 	idx.printIndex();
 
 	
 for (int i = 1; i < 24; i++) {
-	idx.resetPtr();
 	idx.readIdxRecord(i);
 }
 

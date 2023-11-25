@@ -35,7 +35,7 @@ void Index::writeBlock() {
 
 //readIdxRecord
 int Index::readIdxRecord(int key) {
-	r_ptr = 0;
+	resetPtr();
 	int bytesRead = 0;
 	int iPage = 0;
 	int iKey = 0;
@@ -63,7 +63,7 @@ void Index::writeIdxRecord(int key, int page) {
 	//jeœli jest to zg³oœ lub zamieñ (przypadek gdy podmieniasz pierwsze rekordy w stronei)
 	// ???
 	//jeœli nie to na koniec (chyba nie bo reorg nast¹pi wczeœniej) chyba ¿e to pos³u¿y do reorg, bo wpisujemy ka¿dy wiêkszy od drugiego
-	r_ptr = 0;
+	resetPtr();
 	//znajdz wolne miejsce
 	int bytesRead = 0;
 	while (true) {
@@ -88,7 +88,7 @@ void Index::writeIdxRecord(int key, int page) {
 }
 
 void Index::swapKey(int odlKey, int key) {
-	r_ptr = 0;
+	resetPtr();
 	int bytesRead = 0;
 	int iPage = 0;
 	int iKey = 0;
@@ -111,7 +111,7 @@ void Index::swapKey(int odlKey, int key) {
 }
 
 void Index::printIndex() {
-	r_ptr = 0;
+	resetPtr();
 	printf("KEY -- PAGE\n");
 	int bytesRead = 0;
 	while(bytesRead = readBlock()){
