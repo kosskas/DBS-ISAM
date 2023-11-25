@@ -8,18 +8,20 @@
 #include "Record.h"
 using namespace std;
 
+#define NOTFOUND 0xFFFFFFFF
 
 
 class ISFile : public Buffered {
 private:
 	//ofptr
 
-	Index* idx;
+
 
 	uint32_t BUFFSIZE;
 
 	Record *buffer;
 public:
+	Index* idx;
 	ISFile(uint32_t BUFFSIZE, string filename, ios_base::openmode flags);
 	int readBlock();
 	//writeToBuff();

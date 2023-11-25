@@ -84,7 +84,6 @@ void Index::writeIdxRecord(int key, int page) {
 			}
 		}
 	}
-
 }
 
 void Index::swapKey(int odlKey, int key) {

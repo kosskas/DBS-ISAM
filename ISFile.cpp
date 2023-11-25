@@ -5,10 +5,11 @@ ISFile::ISFile(uint32_t BUFFSIZE, string filename, ios_base::openmode flags) : B
 	this->BUFFSIZE = BUFFSIZE;
 	buffer = new Record[BUFFSIZE];
 	memset(buffer, 0, sizeof(Record) * BUFFSIZE);
-
+	///zlokalizuj OF
 	///moze byc inny buffsize
 	idx = NULL;
-	idx = new Index(5, "idx", flags);
+	idx = new Index(BUFFSIZE, "idx1", flags | ios::trunc);
+	CreateIndex();
 }
 
 int ISFile::readBlock() {
@@ -34,7 +35,20 @@ void ISFile::writeBlock() {
 }
 
 int ISFile::searchRecord(int key) {
-	return 0;//pageno;
+	resetPtr();
+	int idxpage = idx->readIdxRecord(key);
+	//je¿eli 0 to jest mniejszy ni¿ idx na 1 stronie
+	if (idxpage == 0)
+		return 0;
+	//istnieje strona
+	int page = idxpage * BUFFSIZE;
+	r_ptr = page;
+	int bytesRead = readBlock();
+	for (int i = 0; i < BUFFSIZE; i++) {
+		if (buffer->key == key)
+			return page;
+	}
+	return NOTFOUND;//pageno;
 }
 
 Record ISFile::insertRecord(int key, Data data) {
@@ -50,7 +64,8 @@ void ISFile::reorganiseFile() {
 }
 
 void ISFile::clearFile() {
-
+	Buffered::clearFile();
+	idx->clearFile();
 }
 
 void ISFile::printRecords() {
@@ -58,7 +73,16 @@ void ISFile::printRecords() {
 }
 
 void ISFile::printStruct() {
-
+	resetPtr();
+	printf("KEY\tDATA\tOF\n");
+	int bytesRead = 0;
+	while (bytesRead = readBlock()) {
+		printf("\tPrzeczytano %d\n", bytesRead);
+		for (int i = 0; i < BUFFSIZE; i++) {
+			//printf("%d -- %d\n", buffer[i].key, buffer[i].page);
+			printf("%d\t{%d,%d,%d}\t%d\n", buffer[i].key, buffer[i].data.a, buffer[i].data.b, buffer[i].data.h, buffer[i].ofptr);
+		}
+	}
 }
 
 void ISFile::printOF() {
