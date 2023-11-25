@@ -30,7 +30,6 @@ void Index::writeBlock() {
 	written = written - poc;
 	printf("Zapisano %d\n", written);
 	w_ptr += sizeof(IdxRec) * BUFFSIZE;
-	
 }
 
 //readIdxRecord

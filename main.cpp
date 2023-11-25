@@ -32,13 +32,22 @@ nie wszystkie rekordy są indeksowane, a jedynie tylko pierwsze na stronach obsz
 
 */
 void checkIdx();
+
+/*
+- czy ov może myć osobnym plikiem? //czy jest za ostatnią poprawnie zapisaną stroną?
+- operacja wstawiania przed 1 na 1 stronie
+
+- albo zawsze na OF
+    albo dodanie jeśli wolne i sort
+
+-dopóki nie zapełnimy 1 strony trzymamy ją w RAM
+*/
 int main(int argc, char** argv) {
 
-	///rozróżnienie czy od nowa wszystko
 	//checkIdx();
-    ISFile file(6, "file1", ios::binary | ios::in | ios::out);
+
+    ISFile file(6);
     file.printStruct();
-    file.idx->printIndex();
     char cmd;
     int key = 0,a=0,b=0,h=0;
     while (cin >> cmd) {

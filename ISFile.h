@@ -7,6 +7,7 @@
 #include "Index.h"
 #include "Record.h"
 #include <math.h>
+#include <algorithm>
 using namespace std;
 
 #define NOTFOUND 0xFFFFFFFF
@@ -22,16 +23,21 @@ private:
 	uint32_t BUFFSIZE;
 
 	Record *buffer;
+	bool firstWrite;
+	int wToBufferF;
+
 public:
 	Index* idx;
-	ISFile(uint32_t BUFFSIZE, string filename, ios_base::openmode flags);
+	ISFile(uint32_t BUFFSIZE);
 	int readBlock();
 	//writeToBuff();
 	void writeBlock(); //writeToFile();
-	//readPage(page)
 
 	//returns page
+
+	//zwraca numer strony
 	int searchRecord(int key);
+
 
 	void insertRecord(int key, Data data);
 	void removeRecord(int key);
@@ -45,6 +51,7 @@ public:
 
 	void printRecords();
 	void printStruct();
+	void printBuffer();
 	void printOF();
 
 

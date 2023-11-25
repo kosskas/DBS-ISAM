@@ -10,7 +10,7 @@ UWAGA: Indeksy w organizacji indeksowo-sekwencyjnej nazywamy indeksami rzadkimi 
 nie wszystkie rekordy s¹ indeksowane, a jedynie tylko pierwsze na stronach obszaru g³ównego.
 */
 class Index : public Buffered {
-public:
+private:
 	struct IdxRec {
 		int key;
 		int page;
@@ -28,4 +28,3 @@ public:
 	void printIndex();
 	~Index();
 };
-
