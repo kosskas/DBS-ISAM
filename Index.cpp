@@ -1,6 +1,9 @@
 #include "Index.h"
 
-Index::Index(int32_t BUFFSIZE, string filename, ios_base::openmode flags) : Buffered(filename, flags){
+Index::Index(int32_t BUFFSIZE, string filename, ios_base::openmode flags) {
+	file = new fstream();
+	file->open(filename, flags);
+
 	buffer = NULL;
 	this->BUFFSIZE = BUFFSIZE;
 	buffer = new IdxRec[BUFFSIZE];
@@ -8,12 +11,11 @@ Index::Index(int32_t BUFFSIZE, string filename, ios_base::openmode flags) : Buff
 }
 
 int Index::readBlock(int blockNum) {
-	file->seekg(r_ptr);
+	file->seekg(blockNum * (sizeof(IdxRec) * BUFFSIZE));
 	int bytesRead = file->read((char*)buffer, sizeof(IdxRec)* BUFFSIZE).gcount();
 	if (bytesRead < sizeof(IdxRec) * BUFFSIZE) {
 		memset((char*)buffer + bytesRead, 0, sizeof(IdxRec) * BUFFSIZE - bytesRead); //jeœli przeczytano mniej ni¿ ca³¹ stronê, wyzeruj dalsze
 	}
-	r_ptr += bytesRead;
 	//nOfBuff = bytesRead / sizeof(IdxRec);
 	return bytesRead;
 	//gdy przeczytano za ca³y plik bR=0, buf=0,0...
@@ -79,7 +81,6 @@ void Index::writeIdxRecord(int key, int page) {
 				buffer[i].key = key;
 				buffer[i].page = page;
 				//nOfBuff++;
-				w_ptr = r_ptr - bytesRead;
 				file->clear();
 				writeBlock(pageNum-1);
 				return;
@@ -100,7 +101,6 @@ void Index::swapKey(int odlKey, int key) {
 		for (int i = 0; i < BUFFSIZE; i++) {
 			if (buffer[i].key == odlKey) {
 				buffer[i].key = key;
-				w_ptr = r_ptr - bytesRead;
 				file->clear();
 				writeBlock(pageNum-1);
 				return;
@@ -125,7 +125,23 @@ void Index::printIndex() {
 	}
 }
 
+void Index::resetPtr() {
+	file->clear();
+	file->seekg(0, ios::beg);
+	file->seekp(0, ios::beg);
+}
+
+void Index::clearFile() {
+	file->close();
+	file->open(filename, flags | ios::trunc);
+	resetPtr();
+}
+
 Index::~Index() {
 	if(buffer)
 		delete[] buffer;
+	if (file != NULL) {
+		file->close();
+		delete file;
+	}
 }

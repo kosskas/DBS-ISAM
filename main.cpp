@@ -71,12 +71,10 @@ int main(int argc, char** argv) {
             int f = 0;
             cin >> key;
             int ret = file.searchRecord(key,&f);
-            if (f >= 0)
+            if (f)
                 cout << "1\n";
-            else if(ret == NOTFOUND)
-                cout << "0\n";
             else
-                cout << "przed pierwsza\n";
+                cout << "0\n";
         }
         if (cmd == 'p')
             file.printRecords();

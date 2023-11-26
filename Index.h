@@ -9,8 +9,11 @@ Zazwyczaj, bi >> 1 i SIN <<SN, zatem przeszukiwanie indeksu na dysku jest bardzo
 UWAGA: Indeksy w organizacji indeksowo-sekwencyjnej nazywamy indeksami rzadkimi (sparse):
 nie wszystkie rekordy s¹ indeksowane, a jedynie tylko pierwsze na stronach obszaru g³ównego.
 */
-class Index : public Buffered {
+class Index{
 private:
+	fstream* file = NULL;
+	string filename = "";
+	ios_base::openmode flags = 0;
 	struct IdxRec {
 		int key;
 		int page;
@@ -26,5 +29,8 @@ public:
 	void swapKey(int odlKey, int key);
 
 	void printIndex();
+
+	void clearFile();
+	void resetPtr();
 	~Index();
 };

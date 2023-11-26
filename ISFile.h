@@ -12,17 +12,22 @@ using namespace std;
 
 #define NOTFOUND 0xFFFFFFFF
 
-class ISFile : public Buffered {
+class ISFile{
 private:
+	fstream* file = NULL;
+	string filename = "";
+	ios_base::openmode flags = 0;
 	//ofptr
-	uint32_t ofPtr;
+	int ofBlocNo;
 
 	//paging od 0!!!
 	uint32_t BUFFSIZE;
 
 	Record *buffer;
-	bool firstWrite;
-	int wToBufferF;
+	///rekordów w ob. g³ównym
+	int N;
+	//rekordów w nadmiarze
+	int V;
 
 	int bf, bi;
 
@@ -38,24 +43,28 @@ public:
 
 	//zwraca numer strony
 	int searchRecord(int key, int*found);
-
+	int searchInOF(int key, int* found);
 
 	void insertRecord(int key, Data data);
 	void removeRecord(int key);
 
-	void insertToOf(int key, Data data);
+	//zwraca offset w ov
+	int insertToOf(int key, Data data);
 	//reorg
 	//getOF
 	void createIndex();
 	void reorganiseFile(double alpha);
-	void clearFile();
+	void createOF(int blockNo);
+
+	
 
 	void printRecords();
 	void printStruct();
 	void printBuffer();
 	void printOF();
-
-
+	
+	void resetPtr();
+	void clearFile();
 	//void printBuffer();
 	~ISFile();
 };

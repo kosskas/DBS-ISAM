@@ -132,7 +132,6 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Buffered.h" />
     <ClInclude Include="Index.h" />
     <ClInclude Include="ISFile.h" />
     <ClInclude Include="Record.h" />
