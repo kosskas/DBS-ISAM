@@ -7,7 +7,8 @@ struct Data {
 struct Record {
 	int key; //4
 	Data data; //12
-	int ofptr; //4
-	Record() : key(0), data({0,0,0}), ofptr(0) {}
-	Record(int key, Data data) : key(key), data(data), ofptr(0) {}
+	short int deleted;
+	short int ofptr;
+	Record() : key(0), data({0,0,0}), deleted(0), ofptr(0) {}
+	Record(int key, Data data) : key(key), data(data), deleted(0), ofptr(0) {}
 };

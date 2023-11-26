@@ -41,12 +41,20 @@ void checkIdx();
     albo dodanie jeśli wolne i sort
 
 -dopóki nie zapełnimy 1 strony trzymamy ją w RAM
+
+-kiedy reorg przy usuwaniu
 */
 int main(int argc, char** argv) {
 
 	//checkIdx();
+    /*
+    Na pierwszej stonie jest specjalny niemożliwy klucz wartość -1
+    żeby nie było możliwe wstawianie przed niego
 
-    ISFile file(6);
+    usuwanie to zaznaczenie flagi że jest usunięty. 
+    prawdziwe usuwanie przy reorganizacji
+    */
+    ISFile file(3);
     file.printStruct();
     char cmd;
     int key = 0,a=0,b=0,h=0;
@@ -60,9 +68,10 @@ int main(int argc, char** argv) {
             file.removeRecord(key);
         }
         if (cmd == '?') {
+            int f = 0;
             cin >> key;
-            int ret = file.searchRecord(key);
-            if (ret >= 0)
+            int ret = file.searchRecord(key,&f);
+            if (f >= 0)
                 cout << "1\n";
             else if(ret == NOTFOUND)
                 cout << "0\n";

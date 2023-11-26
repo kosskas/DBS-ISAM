@@ -11,8 +11,6 @@
 using namespace std;
 
 #define NOTFOUND 0xFFFFFFFF
-#define BEFOREZERO 0xFFFFFFFE
-
 
 class ISFile : public Buffered {
 private:
@@ -26,17 +24,20 @@ private:
 	bool firstWrite;
 	int wToBufferF;
 
+	int bf, bi;
+
+
 public:
 	Index* idx;
 	ISFile(uint32_t BUFFSIZE);
-	int readBlock();
+	int readBlock(int blockNum);
 	//writeToBuff();
-	void writeBlock(); //writeToFile();
+	int writeBlock(int blockNum); //writeToFile();
 
 	//returns page
 
 	//zwraca numer strony
-	int searchRecord(int key);
+	int searchRecord(int key, int*found);
 
 
 	void insertRecord(int key, Data data);
@@ -46,7 +47,7 @@ public:
 	//reorg
 	//getOF
 	void createIndex();
-	void reorganiseFile();
+	void reorganiseFile(double alpha);
 	void clearFile();
 
 	void printRecords();

@@ -19,8 +19,8 @@ private:
 	//int nOfBuff;
 public:
 	Index(int32_t BUFFSIZE, string filename, ios_base::openmode flags);
-	int readBlock(); //writeToBuff();
-	void writeBlock(); //writeToFile();
+	int readBlock(int blockNum); //writeToBuff();
+	int writeBlock(int blockNum); //writeToFile();
 	int readIdxRecord(int key);
 	void writeIdxRecord(int key, int page);
 	void swapKey(int odlKey, int key);

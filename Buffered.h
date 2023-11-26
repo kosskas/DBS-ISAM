@@ -21,8 +21,9 @@ public:
 		w_ptr= 0;
 		r_ptr = 0;
 	}
-	virtual int readBlock() = 0;
-	virtual void writeBlock() = 0;
+
+	virtual int readBlock(int blockNum) = 0;
+	virtual int writeBlock(int blockNum) = 0;
 	void resetPtr() {
 		r_ptr = 0;
 		w_ptr = 0;
