@@ -1,18 +1,27 @@
 #include "Index.h"
 
-Index::Index(int32_t BUFFSIZE, string filename, ios_base::openmode flags) {
-	file = new fstream();
-	file->open(filename, flags);
-
+Index::Index(int32_t BUFFSIZE,int nOfpages, string filename, ios_base::openmode flags) {
+	this->flags = flags;
 	buffer = NULL;
 	this->BUFFSIZE = BUFFSIZE;
 	buffer = new IdxRec[BUFFSIZE];
 	memset(buffer, 0, sizeof(IdxRec) * BUFFSIZE);
+	file = createFile(filename, nOfpages);
 }
 
-int Index::readBlock(int blockNum) {
-	file->seekg(blockNum * (sizeof(IdxRec) * BUFFSIZE));
-	int bytesRead = file->read((char*)buffer, sizeof(IdxRec)* BUFFSIZE).gcount();
+fstream* Index::createFile(string fileName, int nOfpages) {
+	fstream* f = new fstream();
+	f->open(fileName, flags);
+	int page = 0;
+	memset(buffer, 0, sizeof(IdxRec) * BUFFSIZE);
+	while (nOfpages--) {
+		writeBlock(f,page++);
+	}
+	return f;
+}
+int Index::readBlock(fstream* currfile, int blockNum) {
+	currfile->seekg(blockNum * (sizeof(IdxRec) * BUFFSIZE));
+	int bytesRead = currfile->read((char*)buffer, sizeof(IdxRec)* BUFFSIZE).gcount();
 	if (bytesRead < sizeof(IdxRec) * BUFFSIZE) {
 		memset((char*)buffer + bytesRead, 0, sizeof(IdxRec) * BUFFSIZE - bytesRead); //jeœli przeczytano mniej ni¿ ca³¹ stronê, wyzeruj dalsze
 	}
@@ -21,14 +30,14 @@ int Index::readBlock(int blockNum) {
 	//gdy przeczytano za ca³y plik bR=0, buf=0,0...
 }
 
-int Index::writeBlock(int blockNum) {
+int Index::writeBlock(fstream* currfile, int blockNum) {
 	//DOPOP
 	//sprawdz iloœæ w buforze
 	const char* serialRec = (const char*)buffer;
-	file->seekp(blockNum*(sizeof(IdxRec) * BUFFSIZE));
-	size_t poc = file->tellp();
-	file->write(serialRec, sizeof(IdxRec) * BUFFSIZE);
-	size_t written = file->tellp();
+	currfile->seekp(blockNum*(sizeof(IdxRec) * BUFFSIZE));
+	size_t poc = currfile->tellp();
+	currfile->write(serialRec, sizeof(IdxRec) * BUFFSIZE);
+	size_t written = currfile->tellp();
 	written = written - poc;
 	printf("Zapisano %d\n", written);
 	//w_ptr += sizeof(IdxRec) * BUFFSIZE;
@@ -43,7 +52,7 @@ int Index::readIdxRecord(int key) {
 	int iKey = 0;
 	int page = 0;
 	do {
-		bytesRead = readBlock(page++);
+		bytesRead = readBlock(file,page++);
 		for (int i = 0; i < BUFFSIZE; i++) {
 			if (key >= buffer[i].key && buffer[i].key != 0) {
 				iKey = buffer[i].key;
@@ -71,7 +80,7 @@ void Index::writeIdxRecord(int key, int page) {
 	int bytesRead = 0;
 	int pageNum = 0;
 	while (true) {
-		bytesRead = readBlock(pageNum++);
+		bytesRead = readBlock(file, pageNum++);
 		for (int i = 0; i < BUFFSIZE; i++) {
 			if (buffer[i].key == key) {
 				printf("Taki klucz juz jest\n");
@@ -82,7 +91,7 @@ void Index::writeIdxRecord(int key, int page) {
 				buffer[i].page = page;
 				//nOfBuff++;
 				file->clear();
-				writeBlock(pageNum-1);
+				writeBlock(file, pageNum-1);
 				return;
 			}
 		}
@@ -97,12 +106,12 @@ void Index::swapKey(int odlKey, int key) {
 	int prev = 0;
 	int pageNum = 0;
 	while (true) {
-		bytesRead = readBlock(pageNum++);
+		bytesRead = readBlock(file, pageNum++);
 		for (int i = 0; i < BUFFSIZE; i++) {
 			if (buffer[i].key == odlKey) {
 				buffer[i].key = key;
 				file->clear();
-				writeBlock(pageNum-1);
+				writeBlock(file, pageNum-1);
 				return;
 			}
 			if (buffer[i].key == 0) {
@@ -117,7 +126,7 @@ void Index::printIndex() {
 	printf("KEY\tPAGE\n");
 	int bytesRead = 0;
 	int page = 0;
-	while(bytesRead = readBlock(page++)){
+	while(bytesRead = readBlock(file, page++)){
 		printf("\tPrzeczytano %d\n", bytesRead);
 		for (int i = 0; i < BUFFSIZE; i++) {
 			printf("%d\t%d\n", buffer[i].key, buffer[i].page);

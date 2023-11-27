@@ -36,7 +36,7 @@ private:
 
 	fstream* createFile(string fileName, int nOfpages);
 	void createOF(fstream* currfile, int blockNo, int nOfpages);
-	Index* createIndex(string idxName);
+	Index* createIndex(string idxName, int nOfpages);
 
 	void initBuffers();
 
@@ -55,8 +55,8 @@ public:
 	//returns page
 	//zwraca numer strony
 
-	int searchRecord(int key, int*found);
-	int searchInOF(int key, int* found);
+	int searchRecord(int key, int*found, bool del = false);
+	int searchInOF(int key, int* found, bool del = false);
 
 	void insertRecord(int key, Data data);
 	void removeRecord(int key);

@@ -19,7 +19,7 @@ ISFile::ISFile(uint32_t BUFFSIZE) {
 	writeBlock(file, 0, Mbuffer);
 	createOF(file, 1, 1);
 
-	idx = createIndex(idxname);
+	idx = createIndex(idxname, 1);
 	bf = int((sizeof(Record) * BUFFSIZE) / sizeof(Record));
 	bi = int((sizeof(Record) * BUFFSIZE) / (sizeof(int) + sizeof(short int)));
 	printf("bf = %d\nbi = %d\n", bf, bi);
@@ -51,8 +51,8 @@ fstream* ISFile::createFile(string fileName, int nOfpages) {
 	return f;
 }
 
-Index* ISFile::createIndex(string idxName) {
-	Index* tmp = new Index(BUFFSIZE, idxName, flags);
+Index* ISFile::createIndex(string idxName, int nOfpages) {
+	Index* tmp = new Index(BUFFSIZE, nOfpages, idxName, flags);
 	resetPtr(file);
 	int bytesRead = 0;
 	int page = 0;
@@ -96,7 +96,7 @@ int ISFile::writeBlock(fstream* currfile, int blockNum, Record* buffer) {
 	return written;
 }
 
-int ISFile::searchRecord(int key, int* found) {
+int ISFile::searchRecord(int key, int* found, bool del) {
 	resetPtr(file);
 	int idxpage = idx->readIdxRecord(key);
 	int exists = 0;
@@ -107,13 +107,26 @@ int ISFile::searchRecord(int key, int* found) {
 	for (int i = 0; i < BUFFSIZE; i++) {
 		if (Mbuffer[i].key == key) {
 			exists = 1;
+			if (del) {
+				Mbuffer[i].deleted = 1;
+				writeBlock(file, idxpage, Mbuffer);
+			}
+			//wstawianie
+			else {
+				Mbuffer[i].deleted = 0;
+				writeBlock(file, idxpage, Mbuffer);
+			}
 		}
+		
 	}
 	*found = exists;
+	if (!exists) {
+		searchInOF(key, found, del);
+	}
 	return idxpage;
 }
 
-int ISFile::searchInOF(int key, int* found) {
+int ISFile::searchInOF(int key, int* found, bool del) {
 	resetPtr(file);
 	int page = ofBlocNo;
 	int bytesRead = 0;
@@ -122,6 +135,15 @@ int ISFile::searchInOF(int key, int* found) {
 		for (int i = 0; i < BUFFSIZE; i++) {
 			if (ofbuffer[i].key == key) {
 				exists = 1;
+				if (del) {
+					ofbuffer[i].deleted = 1;
+					writeBlock(file, page - 1, ofbuffer);
+				}
+				//wstawianie
+				else {
+					ofbuffer[i].deleted = 0;
+					writeBlock(file, page - 1, ofbuffer);
+				}
 			}
 		}
 		if (exists) {
@@ -165,15 +187,9 @@ void ISFile::insertRecord(int key, Data data) {
 	int found = 0;
 	int page = searchRecord(key,&found);
 	if (found) {
-		printf("Taki klucz juz istnieje w ob. glownym\n");
+		printf("Taki klucz juz istnieje\n");
 		return;
 	}
-	int ofpage = searchInOF(key, &found);
-	if (found) {
-		printf("Taki klucz juz istnieje w nadmiarze\n");
-		return;
-	}
-
 
 	int bytesRead = readBlock(file, page, Mbuffer);
 	///znajdz miejsce
@@ -194,22 +210,18 @@ void ISFile::insertRecord(int key, Data data) {
 			VrecordInOf++;
 			return;
 		}
+		///przypadek gdy key == key, na nowo wstawiamy usuniety klucz
 	}
 }
 
 void ISFile::removeRecord(int key) {
 	//oznacz jako del
 	int found = 0;
-	int page = searchRecord(key, &found);
-	if (!found) {
-		printf("Nie ma takiego rekordu w ob. glownym\n");
-		return;
-	}
-	int ofpage = searchInOF(key, &found);
-	if (!found) {
-		printf("Nie ma takiego rekordu w nadmiarze\n");
-		return;
-	}
+	int page = searchRecord(key, &found, true);
+	if (found) 
+		printf("Usunieto\n");
+	else
+		printf("Nie ma takiego rekordu\n");
 	return;
 }
 
@@ -259,9 +271,22 @@ void ISFile::reorganiseFile(double alpha) {
 	int Sinew = int(Snnew / bi) + 1;
 	int Sonew = int(0.333 * NrecordInMain) + 1;
 	printf("Bedzie %d stron\nBedzie %d stron indeksu\nBedzie %d stron nadmiaru",Snnew, Sinew, Sonew);
-	//fstream* newFile = createFile(newfilename, 1);
+	
+	fstream* newFile = createFile(newfilename, Snnew);
+	//createOF(newFile, Snnew, Sonew);
+	//Index* newIdx = createIndex(newidxname, Sinew);
 
-
+	resetPtr(file);
+	printf("KEY\tDATA\tDEL\tOF\n");
+	int bytesRead = 0;
+	int page = 0;
+	while (page != ofBlocNo) {
+		int bytesRead = readBlock(file, page++, Mbuffer);
+		for (int i = 0; i < BUFFSIZE; i++) {
+			if (Mbuffer[i].ofptr != 0) {
+			}
+		}
+	}
 
 
 
@@ -277,7 +302,7 @@ void ISFile::clearFile() {
 	writeBlock(file, 0, Mbuffer);
 	if (idx)
 		delete idx;
-	idx = createIndex(idxname);
+	idx = createIndex(idxname, 1);
 }
 
 void ISFile::printRecords() {
@@ -291,12 +316,21 @@ void ISFile::printRecords() {
 		for (int i = 0; i < BUFFSIZE; i++) {
 			if (Mbuffer[i].ofptr != 0) {
 				vector<Record> vec = getChain(Mbuffer[i]);
+				printf("{ ");
 				for (int j = 0; j < vec.size(); j++) {
-					printf(" %d -> ", vec[j].key);
+					if (vec[j].deleted)
+						printf(" $%d$ -> ", vec[j].key);
+					else
+						printf(" %d -> ", vec[j].key);
 				}
+				printf(" }");
+
 			}
 			else if (Mbuffer[i].key != 0) {
-				printf(" %d -> ", Mbuffer[i].key);
+				if (Mbuffer[i].deleted)
+					printf(" $%d$ -> ", Mbuffer[i].key);
+				else
+					printf(" %d -> ", Mbuffer[i].key);
 			}
 		}
 	}
@@ -311,7 +345,7 @@ void ISFile::printStruct() {
 		bytesRead = readBlock(file, page++, Mbuffer);
 		printf("\tPrzeczytano %d\n", bytesRead);
 		for (int i = 0; i < BUFFSIZE; i++) {
-			printf("%d\t{%d,%d,%d}\t%d\t%d\n", Mbuffer[i].key, Mbuffer[i].data.a, Mbuffer[i].data.b, Mbuffer[i].data.h, Mbuffer[i].deleted, Mbuffer[i].ofptr);
+			printf("%d\t{%d,%d,%d}\t%hd\t%hd\n", Mbuffer[i].key, Mbuffer[i].data.a, Mbuffer[i].data.b, Mbuffer[i].data.h, Mbuffer[i].deleted, Mbuffer[i].ofptr);
 		}
 	}
 	printOF();
@@ -327,14 +361,14 @@ void ISFile::printOF() {
 	while (bytesRead = readBlock(file, page++, ofbuffer)){
 		printf("\tPrzeczytano %d\n", bytesRead);
 		for (int i = 0; i < BUFFSIZE; i++) {
-			printf("%d\t{%d,%d,%d}\t%d\t%d\n", ofbuffer[i].key, ofbuffer[i].data.a, ofbuffer[i].data.b, ofbuffer[i].data.h, ofbuffer[i].deleted, ofbuffer[i].ofptr);
+			printf("%d\t{%d,%d,%d}\t%hd\t%hd\n", ofbuffer[i].key, ofbuffer[i].data.a, ofbuffer[i].data.b, ofbuffer[i].data.h, ofbuffer[i].deleted, ofbuffer[i].ofptr);
 		}
 	}
 }
 
 void ISFile::printBuffer() {
 	for (int i = 0; i < BUFFSIZE; i++) {
-		printf("%d\t{%d,%d,%d}\t%d\t%d\n", Mbuffer[i].key, Mbuffer[i].data.a, Mbuffer[i].data.b, Mbuffer[i].data.h, Mbuffer[i].deleted, Mbuffer[i].ofptr);
+		printf("%d\t{%d,%d,%d}\t%hd\t%hd\n", Mbuffer[i].key, Mbuffer[i].data.a, Mbuffer[i].data.b, Mbuffer[i].data.h, Mbuffer[i].deleted, Mbuffer[i].ofptr);
 	}
 }
 

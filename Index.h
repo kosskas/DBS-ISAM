@@ -21,10 +21,12 @@ private:
 	}*buffer;
 	uint32_t BUFFSIZE;
 	//int nOfBuff;
+	fstream* createFile(string fileName, int nOfpages);
+	int readBlock(fstream* currfile, int blockNum); //writeToBuff();
+	int writeBlock(fstream* currfile, int blockNum); //writeToFile();
 public:
-	Index(int32_t BUFFSIZE, string filename, ios_base::openmode flags);
-	int readBlock(int blockNum); //writeToBuff();
-	int writeBlock(int blockNum); //writeToFile();
+	Index(int32_t BUFFSIZE,int nOfpages, string filename, ios_base::openmode flags);
+
 	int readIdxRecord(int key);
 	void writeIdxRecord(int key, int page);
 	void swapKey(int odlKey, int key);

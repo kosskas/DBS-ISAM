@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
 }
 
 void checkIdx() {
-	Index idx(5, "idx1", ios::binary | ios::in | ios::out | ios::trunc);
+	Index idx(5,1, "idx1", ios::binary | ios::in | ios::out | ios::trunc);
 	idx.clearFile();
 
 	idx.writeIdxRecord(1, 1);
