@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
     usuwanie to zaznaczenie flagi że jest usunięty. 
     prawdziwe usuwanie przy reorganizacji
     */
-    ISFile file(3);
+    ISFile file(4);
     file.printStruct();
     char cmd;
     int key = 0,a=0,b=0,h=0;
@@ -82,6 +82,8 @@ int main(int argc, char** argv) {
             file.printStruct();
         if (cmd == 'i')
             file.idx->printIndex();
+        if (cmd == 'r')
+            file.reorganiseFile(0.5);
         /*
         if (cmd == 'o')
             file.printOF();

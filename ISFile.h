@@ -7,38 +7,51 @@
 #include "Record.h"
 #include <math.h>
 #include <algorithm>
+#include <vector>
 using namespace std;
 
 #define NOTFOUND 0xFFFFFFFF
 
 class ISFile{
 private:
-	fstream* file = NULL;
-	string filename = "";
-	ios_base::openmode flags = 0;
+	fstream* file;
+	string filename;
+	string idxname;
+	ios_base::openmode flags;
 	//ofptr
 	int ofBlocNo;
-
 	//paging od 0!!!
 	uint32_t BUFFSIZE;
 
 	Record *Mbuffer;
 	Record *ofbuffer;
 	///rekordów w ob. g³ównym
-	int N;
+	int NrecordInMain;
 	//rekordów w nadmiarze
-	int V;
+	int VrecordInOf;
 
 	int bf, bi;
-	Index* idx;
+	
+	bool swc;
+
+	fstream* createFile(string fileName, int nOfpages);
+	void createOF(fstream* currfile, int blockNo, int nOfpages);
+	Index* createIndex(string idxName);
 
 	void initBuffers();
-public:
 
+
+
+	int readBlock(fstream* currfile, int blockNum, Record* buffer);
+	int writeBlock(fstream* currfile, int blockNum, Record* buffer);
+	void resetPtr(fstream* currfile);
+
+	vector<Record> getChain(Record first);
+public:
+	Index* idx;
 	ISFile(uint32_t BUFFSIZE);
 	
-	int readBlock(int blockNum, Record* buffer);
-	int writeBlock(int blockNum, Record* buffer);
+
 	//returns page
 	//zwraca numer strony
 
@@ -50,9 +63,9 @@ public:
 
 	//zwraca offset w ov
 	void insertToOf(int key, Data data, short int *ptr);
-	void createIndex();
+
 	void reorganiseFile(double alpha);
-	void createOF(int blockNo);
+
 
 	///GetNextRecord????
 	
@@ -62,7 +75,7 @@ public:
 	void printBuffer();
 	void printOF();
 	
-	void resetPtr();
+
 	void clearFile();
 	//void printBuffer();
 	~ISFile();
