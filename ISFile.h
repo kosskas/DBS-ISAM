@@ -30,18 +30,18 @@ private:
 	int V;
 
 	int bf, bi;
+	Index* idx;
 
 	void initBuffers();
 public:
-	Index* idx;
+
 	ISFile(uint32_t BUFFSIZE);
+	
 	int readBlock(int blockNum, Record* buffer);
-	//writeToBuff();
-	int writeBlock(int blockNum, Record* buffer); //writeToFile();
-
+	int writeBlock(int blockNum, Record* buffer);
 	//returns page
-
 	//zwraca numer strony
+
 	int searchRecord(int key, int*found);
 	int searchInOF(int key, int* found);
 
@@ -50,12 +50,11 @@ public:
 
 	//zwraca offset w ov
 	void insertToOf(int key, Data data, short int *ptr);
-	//reorg
-	//getOF
 	void createIndex();
 	void reorganiseFile(double alpha);
 	void createOF(int blockNo);
 
+	///GetNextRecord????
 	
 
 	void printRecords();

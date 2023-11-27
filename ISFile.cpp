@@ -43,22 +43,18 @@ int ISFile::readBlock(int blockNum, Record* buffer) {
 	if (bytesRead < sizeof(Record) * BUFFSIZE) {
 		memset((char*)buffer + bytesRead, 0, sizeof(Record) * BUFFSIZE - bytesRead); //jeœli przeczytano mniej ni¿ ca³¹ stronê, wyzeruj dalsze
 	}
-	//r_ptr += bytesRead;
-
 	return bytesRead;
 }
 
 
 int ISFile::writeBlock(int blockNum, Record* buffer) {
 	const char* serialRec = (const char*)buffer;
-
 	file->seekp(blockNum * (sizeof(Record) * BUFFSIZE));
 	size_t poc = file->tellp();
 	file->write(serialRec, sizeof(Record) * BUFFSIZE);
 	size_t written = file->tellp();
 	written = written - poc;
 	printf("Zapisano %d\n", written);
-	//w_ptr += sizeof(Record) * BUFFSIZE;
 	return written;
 }
 
@@ -67,8 +63,7 @@ int ISFile::searchRecord(int key, int* found) {
 	int idxpage = idx->readIdxRecord(key);
 	int exists = 0;
 	//PAGE MO¯E BYÆ 0!! bo znalaz³
-	int page = idxpage * (sizeof(Record) * BUFFSIZE);
-	int bytesRead = readBlock(page, Mbuffer);
+	int bytesRead = readBlock(idxpage, Mbuffer);
 
 	//sprwadz czy nie jest w of
 	for (int i = 0; i < BUFFSIZE; i++) {
@@ -77,7 +72,18 @@ int ISFile::searchRecord(int key, int* found) {
 		}
 	}
 	*found = exists;
-	return page;
+	return idxpage;
+}
+
+int ISFile::searchInOF(int key, int* found) {
+	resetPtr();
+	int page = ofBlocNo;
+	int bytesRead = 0;
+
+	while (bytesRead = readBlock(page++, ofbuffer)) {
+
+	}
+	return 0;
 }
 
 void ISFile::insertRecord(int key, Data data) {
@@ -92,7 +98,6 @@ void ISFile::insertRecord(int key, Data data) {
 			printf("znaleziono miejsce\n");
 			Mbuffer[i + 1].key = key;
 			Mbuffer[i + 1].data = data;
-			//w_ptr = page;
 			writeBlock(page, Mbuffer);
 			return;
 		}
@@ -108,7 +113,7 @@ void ISFile::insertRecord(int key, Data data) {
 			printf("za ostatnim daj OV");
 
 			///lista kolejnch wskaŸników
-			insertToOf(key, data,&Mbuffer[i].ofptr);
+			insertToOf(key, data, &Mbuffer[i].ofptr);
 			writeBlock(page, Mbuffer);
 			return;
 		}
@@ -127,6 +132,8 @@ void ISFile::insertToOf(int key, Data data,short int* ptr) {
 	///sprawdz czy juz inny z ov nie wskazuje na niego?
 	///jeœli of pe³en to reogranizuj
 	int offset = 0;
+	///CURRENT POINTER!!!
+
 	while (bytesRead = readBlock(page++, ofbuffer)) {
 		//znajdz czy taki jest
 		for (int i = 0; i < BUFFSIZE; i++) {
@@ -152,8 +159,6 @@ void ISFile::createIndex() {
 		//weŸ pierwszy i go zapisz do indeksu
 		idx->writeIdxRecord(Mbuffer[0].key, page++);
 	}
-	//idx.resetPtr
-	///
 }
 
 void ISFile::createOF(int blockNo) {
