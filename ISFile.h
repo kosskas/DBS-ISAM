@@ -3,7 +3,6 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "Buffered.h"
 #include "Index.h"
 #include "Record.h"
 #include <math.h>
@@ -23,7 +22,8 @@ private:
 	//paging od 0!!!
 	uint32_t BUFFSIZE;
 
-	Record *buffer;
+	Record *Mbuffer;
+	Record *ofbuffer;
 	///rekordów w ob. g³ównym
 	int N;
 	//rekordów w nadmiarze
@@ -31,13 +31,13 @@ private:
 
 	int bf, bi;
 
-
+	void initBuffers();
 public:
 	Index* idx;
 	ISFile(uint32_t BUFFSIZE);
-	int readBlock(int blockNum);
+	int readBlock(int blockNum, Record* buffer);
 	//writeToBuff();
-	int writeBlock(int blockNum); //writeToFile();
+	int writeBlock(int blockNum, Record* buffer); //writeToFile();
 
 	//returns page
 
@@ -49,7 +49,7 @@ public:
 	void removeRecord(int key);
 
 	//zwraca offset w ov
-	int insertToOf(int key, Data data);
+	void insertToOf(int key, Data data, short int *ptr);
 	//reorg
 	//getOF
 	void createIndex();

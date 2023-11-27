@@ -1,22 +1,24 @@
 #include "ISFile.h"
 
 ISFile::ISFile(uint32_t BUFFSIZE) {
-	file = new fstream();
-	file->open("file", ios::binary | ios::in | ios::out | ios::trunc);
-	
-	buffer = NULL;
+	filename = "file";
+	flags = ios::binary | ios::in | ios::out | ios::trunc;
 	this->BUFFSIZE = BUFFSIZE;
-	buffer = new Record[BUFFSIZE];
-	memset(buffer, 0, sizeof(Record) * BUFFSIZE);
+
+	file = new fstream();
+	file->open(filename, flags);
+	
+	
 	//Specjalny klucz
-	buffer[0].key = -1;
-	buffer[0].data = {-1,-1,-1};
-	writeBlock(0);
+	initBuffers();
+	Mbuffer[0].key = -1;
+	Mbuffer[0].data = {0,0,0};
+	writeBlock(0, Mbuffer);
 	createOF(1);
 
 
 	idx = NULL;
-	idx = new Index(BUFFSIZE, "idx", ios::binary | ios::in | ios::out | ios::trunc);
+	idx = new Index(BUFFSIZE, "idx", flags);
 	createIndex();
 	bf = int((sizeof(Record) * BUFFSIZE) / sizeof(Record));
 	bi = int((sizeof(Record) * BUFFSIZE) / (sizeof(int) + sizeof(short int)));
@@ -24,7 +26,18 @@ ISFile::ISFile(uint32_t BUFFSIZE) {
 
 }
 
-int ISFile::readBlock(int blockNum) {
+void ISFile::initBuffers() {
+	Mbuffer = NULL;
+	Mbuffer = new Record[BUFFSIZE];
+	memset(Mbuffer, 0, sizeof(Record) * BUFFSIZE);
+
+	ofbuffer = NULL;
+	ofbuffer = new Record[BUFFSIZE];
+	memset(ofbuffer, 0, sizeof(Record) * BUFFSIZE);
+
+}
+
+int ISFile::readBlock(int blockNum, Record* buffer) {
 	file->seekg(blockNum * (sizeof(Record) * BUFFSIZE));
 	int bytesRead = file->read((char*)buffer, sizeof(Record) * BUFFSIZE).gcount();
 	if (bytesRead < sizeof(Record) * BUFFSIZE) {
@@ -36,7 +49,7 @@ int ISFile::readBlock(int blockNum) {
 }
 
 
-int ISFile::writeBlock(int blockNum) {
+int ISFile::writeBlock(int blockNum, Record* buffer) {
 	const char* serialRec = (const char*)buffer;
 
 	file->seekp(blockNum * (sizeof(Record) * BUFFSIZE));
@@ -55,11 +68,11 @@ int ISFile::searchRecord(int key, int* found) {
 	int exists = 0;
 	//PAGE MO¯E BYÆ 0!! bo znalaz³
 	int page = idxpage * (sizeof(Record) * BUFFSIZE);
-	int bytesRead = readBlock(page);
+	int bytesRead = readBlock(page, Mbuffer);
 
 	//sprwadz czy nie jest w of
 	for (int i = 0; i < BUFFSIZE; i++) {
-		if (buffer[i].key == key) {
+		if (Mbuffer[i].key == key) {
 			exists = 1;
 		}
 	}
@@ -71,28 +84,32 @@ void ISFile::insertRecord(int key, Data data) {
 	//przebieg gdy jest index i s¹ strony
 	int found = 0;
 	int page = searchRecord(key,&found);
-	int bytesRead = readBlock(page);
+	int bytesRead = readBlock(page, Mbuffer);
 
 	///znajdz miejsce
 	for (int i = 0; i < BUFFSIZE; i++) {
-		if (i + 1 < BUFFSIZE && buffer[i].key < key && buffer[i+1].key == 0) {
+		if (i + 1 < BUFFSIZE && Mbuffer[i].key < key && Mbuffer[i+1].key == 0) {
 			printf("znaleziono miejsce\n");
-			buffer[i + 1].key = key;
-			buffer[i + 1].data = data;
+			Mbuffer[i + 1].key = key;
+			Mbuffer[i + 1].data = data;
 			//w_ptr = page;
-			writeBlock(page);
+			writeBlock(page, Mbuffer);
 			return;
 		}
-		if (i + 1 < BUFFSIZE && buffer[i].key < key && buffer[i + 1].key > key) {
+		if (i + 1 < BUFFSIZE && Mbuffer[i].key < key && Mbuffer[i + 1].key > key) {
 			//nie ma mniejsca
 			printf("daj OV");
-			buffer[i].ofptr = insertToOf(key, data);
+			insertToOf(key, data, &Mbuffer[i].ofptr);
+			writeBlock(page, Mbuffer);
 			return;
 		}
 		else if (i + 1 >= BUFFSIZE) {
 			///nie ma mniejsca i jest za ostatnim
 			printf("za ostatnim daj OV");
-			buffer[i].ofptr = insertToOf(key, data);
+
+			///lista kolejnch wskaŸników
+			insertToOf(key, data,&Mbuffer[i].ofptr);
+			writeBlock(page, Mbuffer);
 			return;
 		}
 	}
@@ -103,23 +120,24 @@ void ISFile::removeRecord(int key) {
 	return;
 }
 
-int ISFile::insertToOf(int key, Data data) {
+void ISFile::insertToOf(int key, Data data,short int* ptr) {
 	
 	int page = ofBlocNo;
 	int bytesRead = 0;
 	///sprawdz czy juz inny z ov nie wskazuje na niego?
 	///jeœli of pe³en to reogranizuj
 	int offset = 0;
-	while (bytesRead = readBlock(page++)) {
+	while (bytesRead = readBlock(page++, ofbuffer)) {
 		//znajdz czy taki jest
 		for (int i = 0; i < BUFFSIZE; i++) {
 			offset++;
-			if (buffer[i].key != 0) {
+			if (ofbuffer[i].key == 0) {
 				printf("znaleziono miejsce\n");
-				buffer[i + 1].key = key;
-				buffer[i + 1].data = data;
-				writeBlock(page-1);
-				return offset;
+				ofbuffer[i].key = key;
+				ofbuffer[i].data = data;
+				writeBlock(page-1, ofbuffer);
+				*ptr = offset;
+				return;
 			}
 		}
 	}
@@ -129,9 +147,10 @@ void ISFile::createIndex() {
 	resetPtr();
 	int bytesRead = 0;
 	int page = 0;
-	while (bytesRead = readBlock(page)) {
+	while (page != ofBlocNo) {
+		bytesRead = readBlock(page, Mbuffer);
 		//weŸ pierwszy i go zapisz do indeksu
-		idx->writeIdxRecord(buffer[0].key, page++);
+		idx->writeIdxRecord(Mbuffer[0].key, page++);
 	}
 	//idx.resetPtr
 	///
@@ -139,8 +158,8 @@ void ISFile::createIndex() {
 
 void ISFile::createOF(int blockNo) {
 	ofBlocNo = blockNo;
-	memset(buffer, 0, sizeof(Record) * BUFFSIZE);
-	writeBlock(ofBlocNo);
+	memset(ofbuffer, 0, sizeof(Record) * BUFFSIZE);
+	writeBlock(ofBlocNo, ofbuffer);
 	
 }
 
@@ -155,9 +174,9 @@ void ISFile::clearFile() {
 	file->open(filename, flags | ios::trunc);
 	resetPtr();
 	idx->clearFile();
-	buffer[0].key = -1;
-	buffer[0].data = { -1,-1,-1 };
-	writeBlock(0);
+	Mbuffer[0].key = -1;
+	Mbuffer[0].data = { -1,-1,-1 };
+	writeBlock(0, Mbuffer);
 	createIndex();
 
 }
@@ -173,9 +192,11 @@ void ISFile::printStruct() {
 	int bytesRead = 0;
 	int page = 0;
 	while (page != ofBlocNo) {
-		bytesRead = readBlock(page++);
+		bytesRead = readBlock(page++, Mbuffer);
 		printf("\tPrzeczytano %d\n", bytesRead);
-		printBuffer();
+		for (int i = 0; i < BUFFSIZE; i++) {
+			printf("%d\t{%d,%d,%d}\t%d\t%d\n", Mbuffer[i].key, Mbuffer[i].data.a, Mbuffer[i].data.b, Mbuffer[i].data.h, Mbuffer[i].deleted, Mbuffer[i].ofptr);
+		}
 	}
 	printOF();
 }
@@ -187,15 +208,17 @@ void ISFile::printOF() {
 	printf("KEY\tDATA\tDEL\tOF\n");
 	int bytesRead = 0;
 	int page = ofBlocNo;
-	while (bytesRead = readBlock(page++)){ 
+	while (bytesRead = readBlock(page++, ofbuffer)){ 
 		printf("\tPrzeczytano %d\n", bytesRead);
-		printBuffer();
+		for (int i = 0; i < BUFFSIZE; i++) {
+			printf("%d\t{%d,%d,%d}\t%d\t%d\n", ofbuffer[i].key, ofbuffer[i].data.a, ofbuffer[i].data.b, ofbuffer[i].data.h, ofbuffer[i].deleted, ofbuffer[i].ofptr);
+		}
 	}
 }
 
 void ISFile::printBuffer() {
 	for (int i = 0; i < BUFFSIZE; i++) {
-		printf("%d\t{%d,%d,%d}\t%d\t%d\n", buffer[i].key, buffer[i].data.a, buffer[i].data.b, buffer[i].data.h, buffer[i].deleted, buffer[i].ofptr);
+		printf("%d\t{%d,%d,%d}\t%d\t%d\n", Mbuffer[i].key, Mbuffer[i].data.a, Mbuffer[i].data.b, Mbuffer[i].data.h, Mbuffer[i].deleted, Mbuffer[i].ofptr);
 	}
 }
 
@@ -208,8 +231,10 @@ void ISFile::resetPtr() {
 ISFile::~ISFile() {
 	if (idx)
 		delete idx;
-	if (buffer)
-		delete[] buffer;
+	if (Mbuffer)
+		delete[] Mbuffer;
+	if (ofbuffer)
+		delete[] ofbuffer;
 	if (file != NULL) {
 		file->close();
 		delete file;
