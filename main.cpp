@@ -30,6 +30,22 @@ Zazwyczaj, bi >> 1 i SIN <<SN, zatem przeszukiwanie indeksu na dysku jest bardzo
 UWAGA: Indeksy w organizacji indeksowo-sekwencyjnej nazywamy indeksami rzadkimi (sparse):
 nie wszystkie rekordy są indeksowane, a jedynie tylko pierwsze na stronach obszaru głównego.
 
+Po każdej przeprowadzonej operacji podawaj liczbę faktycznie zrealizowanych operacji odczytu lub zapisu stron dyskowych.
+Program powinien dawać możliwość wyświetlania zawartości pliku z danymi i indeksu po każdej operacji zmieniającej zawartość pliku
+    - wstawieniu
+    - aktualizacji
+    - usunięciu rekordu
+[wyświetlanie zawartości pliku oznacza przedstawienie w sposób czytelny dla człowieka wewnętrznej struktury tych plików.
+dla struktury indeksowo-sekwencyjnej wyświetlenie zawartości pliku z danymi powinno dać możliwość sprawdzenia,
+czy rekord znajduje się w części głównej, czy nadmiarowej,
+dokładnie w którym miejscu, ile jest pustych miejsc na poszczególnych stronach pliku,
+czy też zawartości poszczególnych łańcuchów przepełnień.] 
+
+Dodatkowo program powinien dawać możliwość wczytywania danych testowych z pliku testowego.
+Danymi testowymi powinna być dowolna sekwencja operacji.
+
+Program nie czytający poleceń z pliku testowego powinien działać w sposób interaktywny, 
+tzn. po pobraniu komendy wykonać ją, przedstawić wynik jej wykonania, po czym czekać na następną komendę.
 */
 void checkIdx();
 

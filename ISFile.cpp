@@ -1,4 +1,5 @@
 #include "ISFile.h"
+#define clearBuffer(x) memset(x, 0, sizeof(Record) * BUFFSIZE)
 
 ISFile::ISFile(uint32_t BUFFSIZE) {
 	swc = true;
@@ -32,11 +33,11 @@ ISFile::ISFile(uint32_t BUFFSIZE) {
 void ISFile::initBuffers() {
 	Mbuffer = NULL;
 	Mbuffer = new Record[BUFFSIZE];
-	memset(Mbuffer, 0, sizeof(Record) * BUFFSIZE);
+	clearBuffer(Mbuffer);
 
 	ofbuffer = NULL;
 	ofbuffer = new Record[BUFFSIZE];
-	memset(ofbuffer, 0, sizeof(Record) * BUFFSIZE);
+	clearBuffer(ofbuffer);
 
 }
 
@@ -44,7 +45,7 @@ fstream* ISFile::createFile(string fileName, int nOfpages) {
 	fstream* f = new fstream();
 	f->open(fileName, flags);
 	int page = 0;
-	memset(Mbuffer, 0, sizeof(Record) * BUFFSIZE);
+	clearBuffer(Mbuffer);
 	while (nOfpages--) {
 		writeBlock(f, page++, Mbuffer);
 	}
@@ -67,7 +68,7 @@ Index* ISFile::createIndex(string idxName, int nOfpages) {
 void ISFile::createOF(fstream* currfile, int blockNo, int nOfpages) {
 	ofBlocNo = blockNo;
 	int page = ofBlocNo;
-	memset(ofbuffer, 0, sizeof(Record) * BUFFSIZE);
+	clearBuffer(ofbuffer);
 	while (nOfpages--) {
 		writeBlock(currfile, page++, ofbuffer);
 	}
@@ -131,28 +132,30 @@ int ISFile::searchInOF(int key, int* found, bool del) {
 	int page = ofBlocNo;
 	int bytesRead = 0;
 	int exists = 0;
-	while (bytesRead = readBlock(file, page++, ofbuffer)) {
+	while (bytesRead = readBlock(file, page, ofbuffer)) {
 		for (int i = 0; i < BUFFSIZE; i++) {
 			if (ofbuffer[i].key == key) {
 				exists = 1;
 				if (del) {
 					ofbuffer[i].deleted = 1;
-					writeBlock(file, page - 1, ofbuffer);
+					writeBlock(file, page, ofbuffer);
 				}
 				//wstawianie
 				else {
 					ofbuffer[i].deleted = 0;
-					writeBlock(file, page - 1, ofbuffer);
+					writeBlock(file, page, ofbuffer);
 				}
 			}
 		}
 		if (exists) {
 			break;
 		}
+		page++;
 	}
 	*found = exists;
 	return page-1;
 }
+
 //to te¿ blokowo?
 vector<Record> ISFile::getChain(Record first) {
 	vector<Record> temp;
@@ -273,23 +276,77 @@ void ISFile::reorganiseFile(double alpha) {
 	printf("Bedzie %d stron\nBedzie %d stron indeksu\nBedzie %d stron nadmiaru",Snnew, Sinew, Sonew);
 	
 	fstream* newFile = createFile(newfilename, Snnew);
+	
 	//createOF(newFile, Snnew, Sonew);
 	//Index* newIdx = createIndex(newidxname, Sinew);
 
 	resetPtr(file);
 	printf("KEY\tDATA\tDEL\tOF\n");
-	int bytesRead = 0;
-	int page = 0;
+	int bytesRead = 0, page = 0;
+
+	Record* wrtBuff = new Record[BUFFSIZE];
+	clearBuffer(wrtBuff);
+	int savedIdx = 0;
+	int savedBlockNo = 0;
+
 	while (page != ofBlocNo) {
 		int bytesRead = readBlock(file, page++, Mbuffer);
 		for (int i = 0; i < BUFFSIZE; i++) {
+
+			//Co z zerami?
+
+			//Jest ³añcuch przepe³nien
+			//jesli jest usuniety to nastepny
 			if (Mbuffer[i].ofptr != 0) {
+				vector<Record> chain = getChain(Mbuffer[i]);
+				for (int j = 0; j < chain.size(); j++) {
+					if (!chain[j].deleted && chain[j].key != 0) {
+						chain[j].ofptr = 0;
+						wrtBuff[savedIdx++] = chain[j];
+						printf("Zapisano %d\n", chain[j].key);
+						if (savedIdx > alpha * bf) {
+							writeBlock(newFile, savedBlockNo++, wrtBuff);
+							savedIdx = 0;
+							clearBuffer(wrtBuff);
+						}
+					}
+				}
+				if (savedIdx>0) {
+					writeBlock(newFile, savedBlockNo++, wrtBuff);
+					savedIdx = 0;
+					clearBuffer(wrtBuff);
+				}
+				continue;
 			}
+			//jesli jest usuniety to nastepny
+			if (!Mbuffer[i].deleted && Mbuffer[i].key != 0) {
+				Mbuffer[i].ofptr = 0;
+				wrtBuff[savedIdx++] = Mbuffer[i];
+				printf("Zapisano %d\n", Mbuffer[i].key);
+				if (savedIdx > alpha * bf) {
+					writeBlock(newFile, savedBlockNo++, wrtBuff);
+					savedIdx = 0;
+					clearBuffer(wrtBuff);
+				}
+			}	
+		}
+		if (savedIdx > 0) {
+			writeBlock(newFile, savedBlockNo++, wrtBuff);
+			savedIdx = 0;
+			clearBuffer(wrtBuff);
 		}
 	}
+	///nowy idx nadmiatu
+	createOF(newFile, savedBlockNo+1, Sonew);
+	delete[] wrtBuff;
 
-
-
+	if (file != NULL) {
+		file->close();
+		delete file;
+	}
+	file = newFile;
+	delete idx;
+	idx = createIndex(newidxname, Sinew);
 }
 
 void ISFile::clearFile() {
@@ -363,12 +420,6 @@ void ISFile::printOF() {
 		for (int i = 0; i < BUFFSIZE; i++) {
 			printf("%d\t{%d,%d,%d}\t%hd\t%hd\n", ofbuffer[i].key, ofbuffer[i].data.a, ofbuffer[i].data.b, ofbuffer[i].data.h, ofbuffer[i].deleted, ofbuffer[i].ofptr);
 		}
-	}
-}
-
-void ISFile::printBuffer() {
-	for (int i = 0; i < BUFFSIZE; i++) {
-		printf("%d\t{%d,%d,%d}\t%hd\t%hd\n", Mbuffer[i].key, Mbuffer[i].data.a, Mbuffer[i].data.b, Mbuffer[i].data.h, Mbuffer[i].deleted, Mbuffer[i].ofptr);
 	}
 }
 

@@ -80,7 +80,7 @@ void Index::writeIdxRecord(int key, int page) {
 	int bytesRead = 0;
 	int pageNum = 0;
 	while (true) {
-		bytesRead = readBlock(file, pageNum++);
+		bytesRead = readBlock(file, pageNum);
 		for (int i = 0; i < BUFFSIZE; i++) {
 			if (buffer[i].key == key) {
 				printf("Taki klucz juz jest\n");
@@ -91,10 +91,11 @@ void Index::writeIdxRecord(int key, int page) {
 				buffer[i].page = page;
 				//nOfBuff++;
 				file->clear();
-				writeBlock(file, pageNum-1);
+				writeBlock(file, pageNum);
 				return;
 			}
 		}
+		pageNum++;
 	}
 }
 
@@ -106,18 +107,19 @@ void Index::swapKey(int odlKey, int key) {
 	int prev = 0;
 	int pageNum = 0;
 	while (true) {
-		bytesRead = readBlock(file, pageNum++);
+		bytesRead = readBlock(file, pageNum);
 		for (int i = 0; i < BUFFSIZE; i++) {
 			if (buffer[i].key == odlKey) {
 				buffer[i].key = key;
 				file->clear();
-				writeBlock(file, pageNum-1);
+				writeBlock(file, pageNum);
 				return;
 			}
 			if (buffer[i].key == 0) {
 				return;
 			}
 		}
+		pageNum++;
 	}
 }
 

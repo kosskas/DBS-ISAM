@@ -20,7 +20,6 @@ private:
 		int page;
 	}*buffer;
 	uint32_t BUFFSIZE;
-	//int nOfBuff;
 	fstream* createFile(string fileName, int nOfpages);
 	int readBlock(fstream* currfile, int blockNum); //writeToBuff();
 	int writeBlock(fstream* currfile, int blockNum); //writeToFile();

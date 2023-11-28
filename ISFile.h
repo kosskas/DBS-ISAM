@@ -45,8 +45,11 @@ private:
 	int readBlock(fstream* currfile, int blockNum, Record* buffer);
 	int writeBlock(fstream* currfile, int blockNum, Record* buffer);
 	void resetPtr(fstream* currfile);
-
+	//DO POPRAWY
 	vector<Record> getChain(Record first);
+
+	///DO POPRAWY
+	void insertToOf(int key, Data data, short int* ptr);
 public:
 	Index* idx;
 	ISFile(uint32_t BUFFSIZE);
@@ -60,9 +63,10 @@ public:
 
 	void insertRecord(int key, Data data);
 	void removeRecord(int key);
+	//TODO
+	void updateRecord(int key, Data data);
 
 	//zwraca offset w ov
-	void insertToOf(int key, Data data, short int *ptr);
 
 	void reorganiseFile(double alpha);
 
@@ -72,12 +76,10 @@ public:
 
 	void printRecords();
 	void printStruct();
-	void printBuffer();
 	void printOF();
 	
 
 	void clearFile();
-	//void printBuffer();
 	~ISFile();
 };
 
