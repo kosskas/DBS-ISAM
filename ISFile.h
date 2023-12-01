@@ -4,7 +4,7 @@
 #include <fstream>
 #include <string>
 #include "Index.h"
-#include "Record.h"
+#include "BFile.h"
 #include <math.h>
 #include <algorithm>
 #include <vector>
@@ -14,17 +14,19 @@ using namespace std;
 
 class ISFile{
 private:
-	fstream* file;
+	BFile<Record> *file;
+	BFile<Record> *overflow;
+	Index* idx;
+	//fstream* file;
 	string filename;
+	string ofname;
 	string idxname;
-	ios_base::openmode flags;
-	//ofptr
-	int ofBlocNo;
-	//paging od 0!!!
-	uint32_t BUFFSIZE;
 
-	Record *Mbuffer;
-	Record *ofbuffer;
+	//paging od 0!!!
+	int BUFFSIZE;
+	int IDXBUFFSIZE;
+
+
 	///rekordów w ob. g³ównym
 	int NrecordInMain;
 	//rekordów w nadmiarze
@@ -34,24 +36,18 @@ private:
 	
 	bool swc;
 
-	fstream* createFile(string fileName, int nOfpages);
 	void createOF(fstream* currfile, int blockNo, int nOfpages);
 	Index* createIndex(string idxName, int nOfpages);
 
-	void initBuffers();
 
 
-
-	int readBlock(fstream* currfile, int blockNum, Record* buffer);
-	int writeBlock(fstream* currfile, int blockNum, Record* buffer);
-	void resetPtr(fstream* currfile);
 	//DO POPRAWY
 	vector<Record> getChain(Record first);
 
 	///DO POPRAWY
 	void insertToOf(int key, Data data, short int* ptr);
 public:
-	Index* idx;
+
 	ISFile(uint32_t BUFFSIZE);
 	
 

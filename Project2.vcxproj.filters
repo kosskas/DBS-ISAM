@@ -24,6 +24,9 @@
     <ClCompile Include="Index.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+    <ClCompile Include="BFile.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ISFile.h">
@@ -35,8 +38,13 @@
     <ClInclude Include="Index.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
+    <ClInclude Include="BFile.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="recGen.py" />
+    <None Include="idx0" />
+    <None Include="file0" />
   </ItemGroup>
 </Project>

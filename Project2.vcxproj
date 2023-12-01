@@ -127,16 +127,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BFile.cpp" />
     <ClCompile Include="Index.cpp" />
     <ClCompile Include="ISFile.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BFile.h" />
     <ClInclude Include="Index.h" />
     <ClInclude Include="ISFile.h" />
     <ClInclude Include="Record.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="file0" />
+    <None Include="idx0" />
     <None Include="recGen.py" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

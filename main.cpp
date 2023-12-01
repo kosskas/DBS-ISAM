@@ -70,6 +70,7 @@ int main(int argc, char** argv) {
     usuwanie to zaznaczenie flagi że jest usunięty. 
     prawdziwe usuwanie przy reorganizacji
     */
+
     ISFile file(4);
     file.printStruct();
     char cmd;
