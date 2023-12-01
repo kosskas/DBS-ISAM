@@ -14,8 +14,8 @@ using namespace std;
 
 class ISFile{
 private:
-	BFile<Record> *file;
-	BFile<Record> *overflow;
+	BFile* file;
+	BFile* overflow;
 	Index* idx;
 	//fstream* file;
 	string filename;

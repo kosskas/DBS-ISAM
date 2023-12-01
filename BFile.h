@@ -7,7 +7,8 @@
 #include "Record.h"
 
 using namespace std;
-template <typename T>
+
+
 class BFile {
 private:
 	fstream* file;
@@ -15,7 +16,7 @@ private:
 	ios_base::openmode flags;
 	int BUFFSIZE;
 public:
-	T* buffer;
+	Record* buffer;
 
 	BFile(string filename, int BUFFSIZE, int pages);
 	int readBlock(int blockNum);

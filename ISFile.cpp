@@ -7,8 +7,8 @@ ISFile::ISFile(uint32_t BUFFSIZE) {
 	filename = "file0";
 	ofname = "of0";
 	idxname = "idx0";
-	file = new BFile<Record>(filename, BUFFSIZE, 1);
-	overflow = new BFile<Record>(ofname, BUFFSIZE, 1);
+	file = new BFile(filename, BUFFSIZE, 1);
+	overflow = new BFile(ofname, BUFFSIZE, 1);
 
 	file->buffer[0].key = -1;
 	file->buffer[0].data = { -1,-1,-1 };
@@ -225,8 +225,8 @@ void ISFile::reorganiseFile(double alpha) {
 	VrecordInOf = 0;
 	printf("Bedzie %d stron\nBedzie %d stron indeksu\nBedzie %d stron nadmiaru",Snnew, Sinew, Sonew);
 	
-	BFile<Record>* newfile = new BFile<Record>(newfilename, BUFFSIZE, Snnew);
-	BFile<Record>* newof = new BFile<Record>(newofname, BUFFSIZE, Sonew);
+	BFile* newfile = new BFile(newfilename, BUFFSIZE, Snnew);
+	BFile* newof = new BFile(newofname, BUFFSIZE, Sonew);
 
 	file->resetPtr();
 	int bytesRead = 0, page = 0;

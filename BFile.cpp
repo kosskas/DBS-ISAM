@@ -1,12 +1,11 @@
 #include "BFile.h"
+#define clearBuffer(x) memset(x, 0, sizeof(Record) * BUFFSIZE)
 
-
-template <typename T>
-BFile<T>::BFile(string filename, int BUFFSIZE, int pages) {
+BFile::BFile(string filename, int BUFFSIZE, int pages) {
 	this->BUFFSIZE = BUFFSIZE;
 	this->flags = ios::binary | ios::in | ios::out | ios::trunc;
 	buffer = NULL;
-	buffer = new T[BUFFSIZE];
+	buffer = new Record[BUFFSIZE];
 	clearBuffer(buffer);
 
 	file = new fstream();
@@ -18,8 +17,7 @@ BFile<T>::BFile(string filename, int BUFFSIZE, int pages) {
 
 }
 
-template <typename T>
-int BFile<T>::readBlock(int blockNum) {
+int BFile::readBlock(int blockNum) {
 	resetPtr();
 	file->seekg(blockNum * (sizeof(Record) * BUFFSIZE));
 	int bytesRead = file->read((char*)buffer, sizeof(Record) * BUFFSIZE).gcount();
@@ -29,8 +27,7 @@ int BFile<T>::readBlock(int blockNum) {
 	return bytesRead;
 }
 
-template <typename T>
-int BFile<T>::writeBlock(int blockNum) {
+int BFile::writeBlock(int blockNum) {
 	resetPtr();
 	const char* serialRec = (const char*)buffer;
 	file->seekp(blockNum * (sizeof(Record) * BUFFSIZE));
@@ -42,23 +39,20 @@ int BFile<T>::writeBlock(int blockNum) {
 	return written;
 }
 
-template <typename T>
-void BFile<T>::resetPtr() {
+void BFile::resetPtr() {
 	file->clear();
 	file->seekg(0, ios::beg);
 	file->seekp(0, ios::beg);
 }
 
-template <typename T>
-void BFile<T>::clearFile() {
+void BFile::clearFile() {
 	file->close();
 	file->open(filename, flags | ios::trunc);
 	resetPtr();
 }
 
-template <typename T>
-BFile<T>::~BFile() {
-	if (file != NULL) {
+BFile::~BFile() {
+	if (file) {
 		file->close();
 		delete file;
 	}
