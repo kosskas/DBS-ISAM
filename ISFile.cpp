@@ -4,6 +4,7 @@
 ISFile::ISFile(uint32_t BUFFSIZE) {
 	swc = true;
 	this->BUFFSIZE = BUFFSIZE;
+	this->IDXBUFFSIZE = 2*BUFFSIZE;
 	filename = "file0";
 	ofname = "of0";
 	idxname = "idx0";
@@ -16,7 +17,7 @@ ISFile::ISFile(uint32_t BUFFSIZE) {
 
 	idx = createIndex(idxname, 1);
 	bf = int((sizeof(Record) * BUFFSIZE) / sizeof(Record));
-	bi = int((sizeof(Record) * BUFFSIZE) / (sizeof(int) + sizeof(short int)));
+	bi = int((sizeof(Record) * BUFFSIZE) / sizeof(int)+ sizeof(int));
 	printf("bf = %d\nbi = %d\n", bf, bi);
 
 	NrecordInMain = 1;
@@ -26,7 +27,7 @@ ISFile::ISFile(uint32_t BUFFSIZE) {
 
 
 Index* ISFile::createIndex(string idxName, int nOfpages) {
-	Index* tmp = new Index(BUFFSIZE, nOfpages, idxName, ios::binary | ios::in | ios::out | ios::trunc);
+	Index* tmp = new Index(IDXBUFFSIZE, nOfpages, idxName, ios::binary | ios::in | ios::out | ios::trunc);
 	file->resetPtr();
 	int bytesRead = 0;
 	int page = 0;
@@ -117,7 +118,7 @@ vector<Record> ISFile::getChain(Record first) {
 		if (end)
 			break;
 	}
-	sort(temp.begin(), temp.end(), [](Record a, Record b) { return a.key < b.key; });
+	//sort(temp.begin(), temp.end(), [](Record a, Record b) { return a.key < b.key; });
 	return temp;
 }
 /*
@@ -172,16 +173,20 @@ void ISFile::removeRecord(int key) {
 	return;
 }
 
-void ISFile::insertToOf(int key, Data data,short int* ptr) {
+void ISFile::updateRecord(int key, Data data) {
+	//TODO
+}
+
+void ISFile::insertToOf(int key, Data data, short int* ptr) {
 	
 	int page = 0;
 	int bytesRead = 0;
 	///sprawdz czy juz inny z ov nie wskazuje na niego?
 	///jeœli of pe³en to reogranizuj
 	short offset = 0;
-	///CURRENT POINTER!!!
 
-	int savedLastPageNo=-1, oldPtrIdx=-1;
+	short del = 0;
+
 
 	while (bytesRead = overflow->readBlock(page++)) {
 		//znajdz czy taki jest
@@ -189,12 +194,29 @@ void ISFile::insertToOf(int key, Data data,short int* ptr) {
 			offset++;
 			if (*ptr == offset) {
 				//ju¿ lista
+				if (key < overflow->buffer[i].key) {
+					//podmieñ
+					Data temp = data;
+					int tempk = key;
+
+					data = overflow->buffer[i].data;
+					key = overflow->buffer[i].key;
+					del = overflow->buffer[i].deleted;
+
+					overflow->buffer[i].data = temp;
+					overflow->buffer[i].key = tempk;
+					overflow->buffer[i].deleted = 0;
+					printf("SWAP\n");
+				}
 				ptr = &overflow->buffer[i].ofptr;
+
+
 			}
 			if (overflow->buffer[i].key == 0) {
 				printf("znaleziono miejsce w oF\n");
 				overflow->buffer[i].key = key;
 				overflow->buffer[i].data = data;
+				overflow->buffer[i].deleted = del;
 				*ptr = offset;
 				overflow->writeBlock(page - 1);
 				return;
@@ -202,7 +224,8 @@ void ISFile::insertToOf(int key, Data data,short int* ptr) {
 		}
 	}
 }
-
+//Raczej nie dojdzie do sytuacji przy reorganizacji ¿e jakieœ strony bêd¹ puste
+//Tyle ile stron tyle w idx, nie ma rozsz idxa
 void ISFile::reorganiseFile(double alpha) {
 	printf("reorg");
 	string newfilename, newidxname, newofname;
@@ -217,9 +240,10 @@ void ISFile::reorganiseFile(double alpha) {
 		newofname = "of0";
 	}
 	swc = !swc;
-	int Snnew = int((NrecordInMain + VrecordInOf) / (bf * alpha))+1;
-	int Sinew = int(Snnew / bi) + 1;
-	int Sonew = int(0.333 * NrecordInMain) + 1;
+	//TO ZLE LICZY!!!
+	int Snnew = ceil(double(NrecordInMain + VrecordInOf) / double(bf * alpha));
+	int Sinew = ceil(double(Snnew) / double(bi));
+	int Sonew = ceil(double(0.333 * NrecordInMain));
 
 	NrecordInMain = 0;
 	VrecordInOf = 0;
@@ -292,6 +316,17 @@ void ISFile::reorganiseFile(double alpha) {
 	idx = createIndex(newidxname, Sinew);
 }
 
+void ISFile::info(double alpha) {
+	printf("bf = %d\nbi = %d\n", bf, bi);
+	printf("Strona dyskowa: %d wpisy\nStrona indeksu: %d wpisy\n", BUFFSIZE, IDXBUFFSIZE);
+	printf("Jest rekordow: %d\nW nadmiarze: %d\n", NrecordInMain, VrecordInOf);
+	int Snnew = ceil(double(NrecordInMain + VrecordInOf) / double(bf * alpha));
+	int Sinew = ceil(double(Snnew) / double(bi));
+	int Sonew = ceil(double(0.333 * NrecordInMain));
+
+	printf("Bedzie %d stron\nBedzie %d stron indeksu\nBedzie %d stron nadmiaru", Snnew, Sinew, Sonew);
+}
+
 void ISFile::printRecords() {
 	//Nie wypisuj jeœli del
 
@@ -323,6 +358,10 @@ void ISFile::printRecords() {
 	}
 }
 
+void ISFile::printIndex() {
+	idx->printIndex();
+}
+
 void ISFile::printStruct() {
 	file->resetPtr();
 	printf("KEY\tDATA\tDEL\tOF\n");
@@ -352,6 +391,21 @@ void ISFile::printOF() {
 	}
 }
 
+
+void ISFile::clearFile() {
+	//TODO
+	file->clearFile();
+	overflow->clearFile();
+	idx->clearFile();
+
+	file->buffer[0].key = -1;
+	file->buffer[0].data = { -1,-1,-1 };
+	file->writeBlock(0);
+
+	if (idx)
+		delete idx;
+	idx = createIndex(idxname, 1);
+}
 
 ISFile::~ISFile() {
 	if (idx)

@@ -3,6 +3,7 @@
 #include <math.h>
 #include "Index.h"
 #include "ISFile.h"
+#include <random>
 using namespace std;
 
 
@@ -61,6 +62,12 @@ void checkIdx();
 -kiedy reorg przy usuwaniu
 */
 int main(int argc, char** argv) {
+    random_device rd;
+    mt19937 generator(rd());
+
+    // Utworzenie rozkładu równomiernego
+    uniform_int_distribution<int> klucze(1, 0x7F);
+    uniform_int_distribution<int> rekordy(1, 0x10);
 
 	//checkIdx();
     /*
@@ -71,36 +78,45 @@ int main(int argc, char** argv) {
     prawdziwe usuwanie przy reorganizacji
     */
 
-    ISFile file(4);
-    file.printStruct();
+    ISFile isfile(3);
+    isfile.printStruct();
     char cmd;
     int key = 0,a=0,b=0,h=0;
     while (cin >> cmd) {
         if (cmd == '+') {
-            cin >> key>>a>>b>>h;
-            file.insertRecord(key, { a, b, h });
+            cin >> key >> a >> b >> h;
+            isfile.insertRecord(key, { a, b, h });
+        }
+        if (cmd == 'w') {
+            isfile.insertRecord(klucze(generator), { rekordy(generator), rekordy(generator), rekordy(generator) });
         }
         if (cmd == '-') {
             cin >> key;
-            file.removeRecord(key);
+            isfile.removeRecord(key);
         }
         if (cmd == '?') {
             int f = 0;
             cin >> key;
-            int ret = file.searchRecord(key,&f);
+            int ret = isfile.searchRecord(key,&f);
             if (f)
                 cout << "1\n";
             else
                 cout << "0\n";
         }
         if (cmd == 'p')
-            file.printRecords();
+            isfile.printRecords();
         if (cmd == 'P')
-            file.printStruct();
+            isfile.printStruct();
         if (cmd == 'i')
-            file.idx->printIndex();
+            isfile.printIndex();
         if (cmd == 'r')
-            file.reorganiseFile(0.5);
+            isfile.reorganiseFile(0.5);
+        if (cmd == 'n') {
+            double alpha;
+            cout << "Alfa: ";
+            cin >> alpha;
+            isfile.info(alpha);
+        }
         /*
         if (cmd == 'o')
             file.printOF();

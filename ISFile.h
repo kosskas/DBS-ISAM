@@ -10,13 +10,12 @@
 #include <vector>
 using namespace std;
 
-#define NOTFOUND 0xFFFFFFFF
-
 class ISFile{
 private:
 	BFile* file;
 	BFile* overflow;
 	Index* idx;
+
 	//fstream* file;
 	string filename;
 	string ofname;
@@ -63,19 +62,20 @@ public:
 	void updateRecord(int key, Data data);
 
 	//zwraca offset w ov
-
+	void clearFile();
 	void reorganiseFile(double alpha);
 
-
+	void info(double alpha);
 	///GetNextRecord????
 	
 
 	void printRecords();
+	void printIndex();
 	void printStruct();
 	void printOF();
 	
 
-	void clearFile();
+
 	~ISFile();
 };
 
