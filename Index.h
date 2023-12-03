@@ -28,10 +28,7 @@ public:
 
 	int readIdxRecord(int key);
 	void writeIdxRecord(int key, int page);
-	void swapKey(int odlKey, int key);
-
 	void printIndex();
-
 	void clearFile();
 	void resetPtr();
 	~Index();

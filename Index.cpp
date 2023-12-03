@@ -99,29 +99,6 @@ void Index::writeIdxRecord(int key, int page) {
 	}
 }
 
-void Index::swapKey(int odlKey, int key) {
-	resetPtr();
-	int bytesRead = 0;
-	int iPage = 0;
-	int iKey = 0;
-	int prev = 0;
-	int pageNum = 0;
-	while (true) {
-		bytesRead = readBlock(file, pageNum);
-		for (int i = 0; i < BUFFSIZE; i++) {
-			if (buffer[i].key == odlKey) {
-				buffer[i].key = key;
-				file->clear();
-				writeBlock(file, pageNum);
-				return;
-			}
-			if (buffer[i].key == 0) {
-				return;
-			}
-		}
-		pageNum++;
-	}
-}
 
 void Index::printIndex() {
 	resetPtr();
