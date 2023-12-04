@@ -8,21 +8,28 @@ ISFile::ISFile(uint32_t BUFFSIZE) {
 	filename = "file0";
 	ofname = "of0";
 	idxname = "idx0";
+
+	int ofpages = 2;
+
 	file = new BFile(filename, BUFFSIZE, 1);
-	overflow = new BFile(ofname, BUFFSIZE, 1);
+	overflow = new BFile(ofname, BUFFSIZE, ofpages);
 
 	file->buffer[0].key = -1;
 	file->buffer[0].data = { -1,-1,-1 };
 	file->writeBlock(0);
 
 	idx = createIndex(idxname, 1);
+	/**
+	JAK TO LICZYÆ
+	
+	*/
 	bf = ceil(double(sizeof(Record) * BUFFSIZE) / (sizeof(Record)+ sizeof(int)));
 	bi = ceil(double(sizeof(Record) * BUFFSIZE) / (sizeof(int) + sizeof(int)));
 	printf("bf = %d\nbi = %d\n", bf, bi);
 
 	NrecordInMain = 1;
 	VrecordInOf = 0;
-	maxOFsize = BUFFSIZE;
+	maxOFsize = ofpages*BUFFSIZE;
 }
 
 Index* ISFile::createIndex(string idxName, int nOfpages) {
@@ -166,12 +173,83 @@ void ISFile::insertRecord(int key, Data data) {
 	}
 }
 
+void ISFile::insertToOf(int key, Data data, short *startptr) {
+///sprawdz czy juz inny z ov nie wskazuje na niego?
+///jeœli of pe³en to reogranizuj
+	
+	short ptr = *startptr, next = 0, prev = 0;
+	int prevpage = 0, nextpage = 0;
+	/*
+	1. Dodano pierwszy raz - zmieñ startprt
+	2. Dodano na koniec, zmieñ ¿e przedostatni wskazuje na ost(zmieniajace siê strony) i nie zmieniaj startptra JEST 
+	3. Dodano w œrodek of, wsk¹zniki prev i next
+	5. Dodano miêdzy tym z maina a of, startptr, next
+	*/
+
+
+	int page = 0;
+	int bytesRead = 0;
+	short offset = 0;
+	int count = 0;
+
+
+
+	///Odczytaj stronê od
+	while (bytesRead = overflow->readBlock(page)) {
+		//znajdz czy taki jest
+		for (int i = 0; i < BUFFSIZE; i++) {
+			offset++;
+			if (ptr == offset) {
+				//ju¿ lista
+				if (key < overflow->buffer[i].key) {
+					nextpage = page;
+					next = offset;
+					//ptr = next;
+
+				}
+				if (key > overflow->buffer[i].key) {
+					prevpage = page;
+					ptr = overflow->buffer[i].ofptr;
+					prev = offset;
+					count++;
+				}
+			}
+			if (overflow->buffer[i].key == 0) {
+				printf("znaleziono miejsce w oF\n");
+				//wstaw w wolne miejce
+				overflow->buffer[i].key = key;
+				overflow->buffer[i].data = data;
+				overflow->buffer[i].ofptr = next;
+
+				//Zaktualizuj wskaŸniki
+				if(count ==0)
+					*startptr = offset; //ten jest za kluczem z maina
+				//zapisz rekord
+				overflow->writeBlock(page);
+				if (prev) {
+					//prev ma wskazywaæ na offset
+					bytesRead = overflow->readBlock(prevpage);
+					overflow->buffer[(prev-1)%BUFFSIZE].ofptr = offset;
+					overflow->writeBlock(prevpage);
+				}
+
+				VrecordInOf++;
+				return;
+			}
+		}
+		page++;
+	}
+}
+
+void ISFile::updateOFPtrs() {
+}
+
 void ISFile::removeRecord(int key) {
 	//oznacz jako del
 	int found = 0;
 	Record frec;
-	int page = searchRecord(key, &found,&frec, true);
-	if (found) 
+	int page = searchRecord(key, &found, &frec, true);
+	if (found)
 		printf("Usunieto\n");
 	else
 		printf("Nie ma takiego rekordu\n");
@@ -218,68 +296,6 @@ void ISFile::updateRecord(int oldkey, int newkey) {
 		insertRecord(newkey, frec.data);
 	}
 }
-
-void ISFile::insertToOf(int key, Data data, short int* ptr) {
-///sprawdz czy juz inny z ov nie wskazuje na niego?
-///jeœli of pe³en to reogranizuj
-	int page = 0;
-	int bytesRead = 0;
-	short offset = 0;
-	short del = 0;
-
-	int savedPage = -1;
-
-	///Odczytaj stronê od
-	while (bytesRead = overflow->readBlock(page)) {
-		//znajdz czy taki jest
-		for (int i = 0; i < BUFFSIZE; i++) {
-			offset++;
-			if (*ptr == offset) {
-				//ju¿ lista
-				if (key < overflow->buffer[i].key) {
-					//podmieñ
-					Data temp = data;
-					int tempk = key;
-
-					data = overflow->buffer[i].data;
-					key = overflow->buffer[i].key;
-					del = overflow->buffer[i].deleted;
-
-					overflow->buffer[i].data = temp;
-					overflow->buffer[i].key = tempk;
-					overflow->buffer[i].deleted = 0;
-					printf("SWAP\n");
-					///JEŒLI JEST ZMIANA STRONY TO WSKANIKI LE WSKAZUJ¥
-				}
-				ptr = &overflow->buffer[i].ofptr;
-			}
-			if (overflow->buffer[i].key == 0) {
-				printf("znaleziono miejsce w oF\n");
-				//wstaw w wolne miejce
-				overflow->buffer[i].key = key;
-				overflow->buffer[i].data = data;
-				overflow->buffer[i].deleted = del;
-
-				//Zaktualizuj wskaŸniki
-				*ptr = offset;
-
-				//zapisz rekord
-				overflow->writeBlock(page);
-
-				//odk³adanie wska¿ników na stos?
-				
-				
-				VrecordInOf++;
-				return;
-			}
-		}
-		page++;
-	}
-}
-
-void ISFile::updateOFPtrs() {
-}
-
 //Raczej nie dojdzie do sytuacji przy reorganizacji ¿e jakieœ strony bêd¹ puste
 //Tyle ile stron tyle w idx, nie ma rozsz idxa
 void ISFile::reorganiseFile(double alpha) {

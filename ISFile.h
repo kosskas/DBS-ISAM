@@ -84,7 +84,7 @@ private:
 
 	///STAN - wersja prostsza
 	vector<Record> getChain(Record first);
-	void insertToOf(int key, Data data, short int* ptr);
+	void insertToOf(int key, Data data, short *startptr);
 
 	void updateOFPtrs();
 
@@ -111,3 +111,65 @@ public:
 	~ISFile();
 };
 
+/*
+
+void ISFile::insertToOf(int key, Data data, short int* ptr) {
+///sprawdz czy juz inny z ov nie wskazuje na niego?
+///jeśli of pełen to reogranizuj
+	int page = 0;
+	int bytesRead = 0;
+	short offset = 0;
+	short del = 0;
+
+	int savedPage = -1;
+
+	///Odczytaj stronę od
+	while (bytesRead = overflow->readBlock(page)) {
+		//znajdz czy taki jest
+		for (int i = 0; i < BUFFSIZE; i++) {
+			offset++;
+			if (*ptr == offset) {
+				//już lista
+				if (key < overflow->buffer[i].key) {
+					//podmień
+					Data temp = data;
+					int tempk = key;
+
+					data = overflow->buffer[i].data;
+					key = overflow->buffer[i].key;
+					del = overflow->buffer[i].deleted;
+
+					overflow->buffer[i].data = temp;
+					overflow->buffer[i].key = tempk;
+					overflow->buffer[i].deleted = 0;
+					printf("SWAP\n");
+					///JEŚLI JEST ZMIANA STRONY TO WSKAŹNIKI ŹLE WSKAZUJĄ
+				}
+				ptr = &overflow->buffer[i].ofptr;
+				//overflow->writeBlock(page);
+			}
+			if (overflow->buffer[i].key == 0) {
+				printf("znaleziono miejsce w oF\n");
+				//wstaw w wolne miejce
+				overflow->buffer[i].key = key;
+				overflow->buffer[i].data = data;
+				overflow->buffer[i].deleted = del;
+
+				//Zaktualizuj wskaźniki
+				*ptr = offset;
+
+				//zapisz rekord
+				overflow->writeBlock(page);
+
+				//odkładanie wskażników na stos?
+
+
+				VrecordInOf++;
+				return;
+			}
+		}
+		page++;
+	}
+}
+
+*/
