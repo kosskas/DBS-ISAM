@@ -9,7 +9,7 @@ ISFile::ISFile(uint32_t BUFFSIZE) {
 	ofname = "of0";
 	idxname = "idx0";
 
-	int ofpages = 2;
+	int ofpages = 1;
 
 	file = new BFile(filename, BUFFSIZE, 1);
 	overflow = new BFile(ofname, BUFFSIZE, ofpages);
@@ -23,7 +23,7 @@ ISFile::ISFile(uint32_t BUFFSIZE) {
 	JAK TO LICZYÆ
 	
 	*/
-	bf = ceil(double(sizeof(Record) * BUFFSIZE) / (sizeof(Record)+ sizeof(int)));
+	bf = ceil(double(sizeof(Record) * BUFFSIZE) / (sizeof(Record)));
 	bi = ceil(double(sizeof(Record) * BUFFSIZE) / (sizeof(int) + sizeof(int)));
 	printf("bf = %d\nbi = %d\n", bf, bi);
 
@@ -111,29 +111,18 @@ vector<Record> ISFile::getChain(Record first) {
 	short offset = 0;
 	short currPtr = first.ofptr;
 	int end = false;
-	while (bytesRead = overflow->readBlock(page++)) {
-		for (int i = 0; i < BUFFSIZE; i++) {
-			offset++;
-			if (currPtr == offset) {
-				temp.push_back(overflow->buffer[i]);
-				currPtr = overflow->buffer[i].ofptr;
-			}
-			if (currPtr == 0) {
-				end = true;
-				break;
-			}
-		}
-		if (end)
-			break;
+	while (currPtr != 0) {
+		int ofpage = ceil(double(currPtr) / BUFFSIZE) - 1;
+		int index = (currPtr - 1) % BUFFSIZE;
+		bytesRead = overflow->readBlock(ofpage);
+		temp.push_back(overflow->buffer[index]);
+		currPtr = overflow->buffer[index].ofptr;
 	}
 	return temp;
 }
 /*
 		///Przypadek gdy nowa niezaindeksowana strona jest wolna - nie ma takiego przypadku
 		BUGI gdy jest wiêcej stron! NIE MA TAKIEGO PRZYPADKU!
-		Domin mówi:
-			Gdy dodajesz na OF to pilnuj kolejnoœci. Przechodzisz po OF i i sprawdzasz klucze, jeœli mniejszy to w to miejsce zapisujesz i szukasz miejsca dla wiêkszego klucza (starszego rekordu)
-
 */
 void ISFile::insertRecord(int key, Data data) {
 	//przebieg gdy jest index i s¹ strony
@@ -176,9 +165,8 @@ void ISFile::insertRecord(int key, Data data) {
 void ISFile::insertToOf(int key, Data data, short *startptr) {
 ///sprawdz czy juz inny z ov nie wskazuje na niego?
 ///jeœli of pe³en to reogranizuj
-	
 	short ptr = *startptr, next = 0, prev = 0;
-	int prevpage = 0, nextpage = 0;
+	int prevpage = -1, nextpage = 0;
 	/*
 	1. Dodano pierwszy raz - zmieñ startprt
 	2. Dodano na koniec, zmieñ ¿e przedostatni wskazuje na ost(zmieniajace siê strony) i nie zmieniaj startptra JEST 
@@ -193,51 +181,48 @@ void ISFile::insertToOf(int key, Data data, short *startptr) {
 	int count = 0;
 
 
-
-	///Odczytaj stronê od
+	/*
+	je¿eli startptr jest pusty to wstaw w wolne
+	jeœli startptr to skacz po stronach
+	
+	*/
+	while (ptr != 0) {
+		int ofpage = ceil(double(ptr) / BUFFSIZE) -1;
+		int index = (ptr-1) % BUFFSIZE;
+		bytesRead = overflow->readBlock(ofpage);
+		if (key < overflow->buffer[index].key) {
+			//next = index + 1;
+			next = ptr;
+			break;
+		}
+		prevpage = ofpage;
+		//prev = index+1;
+		prev = index+1;
+		ptr = overflow->buffer[index].ofptr;
+		count++;
+	}
+	page = 0;
+	//wstaw na koniec
 	while (bytesRead = overflow->readBlock(page)) {
 		//znajdz czy taki jest
 		for (int i = 0; i < BUFFSIZE; i++) {
 			offset++;
-			if (ptr == offset) {
-				//ju¿ lista
-				if (key < overflow->buffer[i].key) {
-					//podmieñ
-					Data temp = data;
-					int tempk = key;
-
-					data = overflow->buffer[i].data;
-					key = overflow->buffer[i].key;
-					del = overflow->buffer[i].deleted;
-
-					overflow->buffer[i].data = temp;
-					overflow->buffer[i].key = tempk;
-					overflow->buffer[i].deleted = 0;
-					printf("SWAP\n");
-					overflow->writeBlock(page);
-				}
-				prevpage = page;
-				prev = offset;
-				ptr = overflow->buffer[i].ofptr;
-				count++;
-				
-			}
 			if (overflow->buffer[i].key == 0) {
 				printf("znaleziono miejsce w oF\n");
 				//wstaw w wolne miejce
 				overflow->buffer[i].key = key;
 				overflow->buffer[i].data = data;
-				overflow->buffer[i].deleted = del;
+				overflow->buffer[i].ofptr = next;
 
 				//Zaktualizuj wskaŸniki
-				if(count ==0)
+				if (count == 0)
 					*startptr = offset; //ten jest za kluczem z maina
 				//zapisz rekord
 				overflow->writeBlock(page);
 				if (prev) {
 					//prev ma wskazywaæ na offset
 					bytesRead = overflow->readBlock(prevpage);
-					overflow->buffer[(prev-1)%BUFFSIZE].ofptr = offset;
+					overflow->buffer[(prev - 1) % BUFFSIZE].ofptr = offset;
 					overflow->writeBlock(prevpage);
 				}
 

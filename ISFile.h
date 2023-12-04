@@ -109,23 +109,12 @@ public:
 };
 
 /*
-
-void ISFile::insertToOf(int key, Data data, short int* ptr) {
-///sprawdz czy juz inny z ov nie wskazuje na niego?
-///jeśli of pełen to reogranizuj
-	int page = 0;
-	int bytesRead = 0;
-	short offset = 0;
-	short del = 0;
-
-	int savedPage = -1;
-
 	///Odczytaj stronę od
 	while (bytesRead = overflow->readBlock(page)) {
 		//znajdz czy taki jest
 		for (int i = 0; i < BUFFSIZE; i++) {
 			offset++;
-			if (*ptr == offset) {
+			if (ptr == offset) {
 				//już lista
 				if (key < overflow->buffer[i].key) {
 					//podmień
@@ -140,10 +129,13 @@ void ISFile::insertToOf(int key, Data data, short int* ptr) {
 					overflow->buffer[i].key = tempk;
 					overflow->buffer[i].deleted = 0;
 					printf("SWAP\n");
-					///JEŚLI JEST ZMIANA STRONY TO WSKAŹNIKI ŹLE WSKAZUJĄ
+					overflow->writeBlock(page);
 				}
-				ptr = &overflow->buffer[i].ofptr;
-				//overflow->writeBlock(page);
+				prevpage = page;
+				prev = offset;
+				ptr = overflow->buffer[i].ofptr;
+				count++;
+
 			}
 			if (overflow->buffer[i].key == 0) {
 				printf("znaleziono miejsce w oF\n");
@@ -153,13 +145,16 @@ void ISFile::insertToOf(int key, Data data, short int* ptr) {
 				overflow->buffer[i].deleted = del;
 
 				//Zaktualizuj wskaźniki
-				*ptr = offset;
-
+				if(count ==0)
+					*startptr = offset; //ten jest za kluczem z maina
 				//zapisz rekord
 				overflow->writeBlock(page);
-
-				//odkładanie wskażników na stos?
-
+				if (prev) {
+					//prev ma wskazywać na offset
+					bytesRead = overflow->readBlock(prevpage);
+					overflow->buffer[(prev-1)%BUFFSIZE].ofptr = offset;
+					overflow->writeBlock(prevpage);
+				}
 
 				VrecordInOf++;
 				return;
@@ -167,6 +162,4 @@ void ISFile::insertToOf(int key, Data data, short int* ptr) {
 		}
 		page++;
 	}
-}
-
 */

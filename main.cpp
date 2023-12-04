@@ -23,6 +23,7 @@ int main(int argc, char** argv) {
         if (cmd == '+') {
             cin >> key >> a >> b >> h;
             isfile.insertRecord(key, { a, b, h });
+            isfile.printStruct();
         }
         if (cmd == 'w') {
             isfile.insertRecord(keys(generator), { recs(generator), recs(generator), recs(generator) });
