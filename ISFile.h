@@ -70,7 +70,7 @@ private:
 	int BUFFSIZE;
 	int IDXBUFFSIZE;
 
-
+	Record NIL;
 	///rekordów w ob. głównym
 	int NrecordInMain;
 	//rekordów w nadmiarze

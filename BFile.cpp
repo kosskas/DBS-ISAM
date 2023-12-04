@@ -1,6 +1,9 @@
 #include "BFile.h"
 #define clearBuffer(x) memset(x, 0, sizeof(Record) * BUFFSIZE)
 
+int nOfReads = 0;
+int nOfWrites = 0;
+
 BFile::BFile(string filename, int BUFFSIZE, int pages) {
 	this->BUFFSIZE = BUFFSIZE;
 	this->flags = ios::binary | ios::in | ios::out | ios::trunc;
@@ -24,6 +27,7 @@ int BFile::readBlock(int blockNum) {
 	if (bytesRead < sizeof(Record) * BUFFSIZE) {
 		memset((char*)buffer + bytesRead, 0, sizeof(Record) * BUFFSIZE - bytesRead); //jeœli przeczytano mniej ni¿ ca³¹ stronê, wyzeruj dalsze
 	}
+	nOfReads++;
 	return bytesRead;
 }
 
@@ -36,6 +40,7 @@ int BFile::writeBlock(int blockNum) {
 	size_t written = file->tellp();
 	written = written - poc;
 	printf("Zapisano %dB\n", written);
+	nOfWrites++;
 	return written;
 }
 
@@ -43,12 +48,6 @@ void BFile::resetPtr() {
 	file->clear();
 	file->seekg(0, ios::beg);
 	file->seekp(0, ios::beg);
-}
-
-void BFile::clearFile() {
-	file->close();
-	file->open(filename, flags | ios::trunc);
-	resetPtr();
 }
 
 BFile::~BFile() {

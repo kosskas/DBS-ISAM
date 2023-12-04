@@ -10,20 +10,18 @@ using namespace std;
 int main(int argc, char** argv) {
     random_device rd;
     mt19937 generator(rd());
-
-    // Utworzenie rozkładu równomiernego
-    uniform_int_distribution<int> keys(1, 0x7F);
-    uniform_int_distribution<int> recs(1, 0x10);
+    uniform_int_distribution<int> keys(1, 0xFF);
+    uniform_int_distribution<int> recs(1, 0x25);
 
     ISFile isfile(4);
     isfile.printStruct();
     char cmd;
     int key = 0,a=0,b=0,h=0;
     while (cin >> cmd) {
+        nOfReads = nOfWrites = 0;
         if (cmd == '+') {
             cin >> key >> a >> b >> h;
             isfile.insertRecord(key, { a, b, h });
-            isfile.printStruct();
         }
         if (cmd == 'w') {
             isfile.insertRecord(keys(generator), { recs(generator), recs(generator), recs(generator) });
@@ -59,17 +57,13 @@ int main(int argc, char** argv) {
             isfile.printIndex();
         if (cmd == 'r')
             isfile.reorganiseFile(0.5);
-        if (cmd == 'n') {
+        if (cmd == 'n')
             isfile.info(0.5);
-        }
-        /*
-        if (cmd == 'o')
-            file.printOF();
         if (cmd == 'c')
-            file.clearFile();
-            */
+            isfile.clearFile();
         if (cmd == 'q')
             break;
+        printf("\nBylo zapisow %d\t odczytow %d\n", nOfWrites, nOfReads);
     }
 
     

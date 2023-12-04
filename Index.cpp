@@ -119,12 +119,6 @@ void Index::resetPtr() {
 	file->seekp(0, ios::beg);
 }
 
-void Index::clearFile() {
-	file->close();
-	file->open(filename, flags | ios::trunc);
-	resetPtr();
-}
-
 Index::~Index() {
 	if(buffer)
 		delete[] buffer;

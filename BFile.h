@@ -8,6 +8,8 @@
 
 using namespace std;
 
+extern int nOfReads;
+extern int nOfWrites;
 
 class BFile {
 private:
@@ -22,8 +24,6 @@ public:
 	int readBlock(int blockNum);
 	int writeBlock(int blockNum);
 	void resetPtr();
-	void clearFile();
-
 	~BFile();
 };
 
