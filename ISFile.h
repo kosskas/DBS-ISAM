@@ -85,9 +85,6 @@ private:
 	///STAN - wersja prostsza
 	vector<Record> getChain(Record first);
 	void insertToOf(int key, Data data, short *startptr);
-
-	void updateOFPtrs();
-
 public:
 	ISFile(uint32_t BUFFSIZE);
 

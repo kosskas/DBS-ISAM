@@ -189,7 +189,7 @@ void ISFile::insertToOf(int key, Data data, short *startptr) {
 
 	int page = 0;
 	int bytesRead = 0;
-	short offset = 0;
+	short offset = 0,del=0;
 	int count = 0;
 
 
@@ -202,24 +202,32 @@ void ISFile::insertToOf(int key, Data data, short *startptr) {
 			if (ptr == offset) {
 				//juø lista
 				if (key < overflow->buffer[i].key) {
-					nextpage = page;
-					next = offset;
-					//ptr = next;
+					//podmieÒ
+					Data temp = data;
+					int tempk = key;
 
+					data = overflow->buffer[i].data;
+					key = overflow->buffer[i].key;
+					del = overflow->buffer[i].deleted;
+
+					overflow->buffer[i].data = temp;
+					overflow->buffer[i].key = tempk;
+					overflow->buffer[i].deleted = 0;
+					printf("SWAP\n");
+					overflow->writeBlock(page);
 				}
-				if (key > overflow->buffer[i].key) {
-					prevpage = page;
-					ptr = overflow->buffer[i].ofptr;
-					prev = offset;
-					count++;
-				}
+				prevpage = page;
+				prev = offset;
+				ptr = overflow->buffer[i].ofptr;
+				count++;
+				
 			}
 			if (overflow->buffer[i].key == 0) {
 				printf("znaleziono miejsce w oF\n");
 				//wstaw w wolne miejce
 				overflow->buffer[i].key = key;
 				overflow->buffer[i].data = data;
-				overflow->buffer[i].ofptr = next;
+				overflow->buffer[i].deleted = del;
 
 				//Zaktualizuj wskaüniki
 				if(count ==0)
@@ -239,9 +247,6 @@ void ISFile::insertToOf(int key, Data data, short *startptr) {
 		}
 		page++;
 	}
-}
-
-void ISFile::updateOFPtrs() {
 }
 
 void ISFile::removeRecord(int key) {

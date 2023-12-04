@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     uniform_int_distribution<int> keys(1, 0x7F);
     uniform_int_distribution<int> recs(1, 0x10);
 
-    ISFile isfile(3);
+    ISFile isfile(4);
     isfile.printStruct();
     char cmd;
     int key = 0,a=0,b=0,h=0;
