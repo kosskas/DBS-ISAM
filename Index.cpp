@@ -39,7 +39,7 @@ int Index::writeBlock(fstream* currfile, int blockNum) {
 	currfile->write(serialRec, sizeof(IdxRec) * BUFFSIZE);
 	size_t written = currfile->tellp();
 	written = written - poc;
-	printf("Zapisano %d\n", written);
+	//printf("Zapisano %d\n", written);
 	//w_ptr += sizeof(IdxRec) * BUFFSIZE;
 	return written;
 }
@@ -58,13 +58,13 @@ int Index::readIdxRecord(int key) {
 				iKey = buffer[i].key;
 				iPage = buffer[i].page;
 				if (buffer[i].key == key) {
-					printf("Klucz %d powinien byc key=%d,page=%d\n", key, iKey, iPage);
+					//printf("Klucz %d powinien byc key=%d,page=%d\n", key, iKey, iPage);
 					return iPage;
 				}
 			}
 		}		
 	} while (bytesRead != 0);
-	printf("Klucz %d powinien byc key=%d,page=%d\n", key, iKey, iPage);
+	//printf("Klucz %d powinien byc key=%d,page=%d\n", key, iKey, iPage);
 	return iPage;
 	//je¿eli 0 to nie ma bo klucz < najmniejszy
 }
@@ -83,7 +83,7 @@ void Index::writeIdxRecord(int key, int page) {
 		bytesRead = readBlock(file, pageNum);
 		for (int i = 0; i < BUFFSIZE; i++) {
 			if (buffer[i].key == key) {
-				printf("Taki klucz juz jest\n");
+				//printf("Taki klucz juz jest\n");
 				return;
 			}
 			if (buffer[i].key == 0) {
@@ -106,7 +106,7 @@ void Index::printIndex() {
 	int bytesRead = 0;
 	int page = 0;
 	while(bytesRead = readBlock(file, page++)){
-		printf("\tPrzeczytano %d\n", bytesRead);
+		//printf("\tPrzeczytano %d\n", bytesRead);
 		for (int i = 0; i < BUFFSIZE; i++) {
 			printf("%d\t%d\n", buffer[i].key, buffer[i].page);
 		}

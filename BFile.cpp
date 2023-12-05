@@ -39,7 +39,7 @@ int BFile::writeBlock(int blockNum) {
 	file->write(serialRec, sizeof(Record) * BUFFSIZE);
 	size_t written = file->tellp();
 	written = written - poc;
-	printf("Zapisano %dB\n", written);
+	//printf("Zapisano %dB\n", written);
 	nOfWrites++;
 	return written;
 }

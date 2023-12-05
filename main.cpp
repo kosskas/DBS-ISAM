@@ -10,7 +10,7 @@ using namespace std;
 int main(int argc, char** argv) {
     random_device rd;
     mt19937 generator(rd());
-    uniform_int_distribution<int> keys(1, 0xFF);
+    uniform_int_distribution<int> keys(1, 0xFFFF);
     uniform_int_distribution<int> recs(1, 0x25);
 
     ISFile isfile(4);
@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
             cin >> key >> a >> b >> h;
             isfile.insertRecord(key, { a, b, h });
         }
-        if (cmd == 'w') {
+        if (cmd == 'r') {
             isfile.insertRecord(keys(generator), { recs(generator), recs(generator), recs(generator) });
         }
         if (cmd == '-') {
@@ -43,6 +43,8 @@ int main(int argc, char** argv) {
         if (cmd == 'u') {
             cin >> key >> a >> b >> h;
             isfile.updateRecord(key,{a,b,h});
+            //update do zmiany
+            //nie zmieniamy usuniêtych
         }
         if (cmd == 'U') {
             int oldkey = 0;
@@ -55,8 +57,11 @@ int main(int argc, char** argv) {
             isfile.printStruct();
         if (cmd == 'i')
             isfile.printIndex();
-        if (cmd == 'r')
+        if (cmd == 'o') {
+            printf("\nBylo rekorow %d\n",isfile.NrecordInMain+isfile.VrecordInOf);
             isfile.reorganiseFile(0.5);
+            printf("\Jest rekorow %d\n", isfile.NrecordInMain + isfile.VrecordInOf);
+        }
         if (cmd == 'n')
             isfile.info(0.5);
         if (cmd == 'c')

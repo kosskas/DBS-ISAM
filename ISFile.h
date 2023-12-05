@@ -71,10 +71,7 @@ private:
 	int IDXBUFFSIZE;
 
 	Record NIL;
-	///rekordów w ob. głównym
-	int NrecordInMain;
-	//rekordów w nadmiarze
-	int VrecordInOf;
+
 	int bf, bi;
 
 	int maxOFsize;
@@ -86,10 +83,15 @@ private:
 	vector<Record> getChain(Record first);
 	void insertToOf(int key, Data data, short *startptr);
 public:
+	///rekordów w ob. głównym
+	int NrecordInMain;
+	//rekordów w nadmiarze
+	int VrecordInOf;
 	ISFile(uint32_t BUFFSIZE);
 
 	int searchRecord(int key, int* found, Record* rec, bool del = false);
 	int searchInOF(int key, int* found, Record* rec, bool del = false);
+	void searchInOF2(short ptr, int key, int* found, Record* rec, bool del = false);
 
 	void insertRecord(int key, Data data);
 	void removeRecord(int key);
