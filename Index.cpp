@@ -4,8 +4,8 @@ Index::Index(int32_t BUFFSIZE,int nOfpages, string filename, ios_base::openmode 
 	this->flags = flags;
 	buffer = NULL;
 	this->BUFFSIZE = BUFFSIZE;
-	buffer = new IdxRec[BUFFSIZE];
-	memset(buffer, 0, sizeof(IdxRec) * BUFFSIZE);
+	buffer = new Record[BUFFSIZE];
+	memset(buffer, 0, sizeof(Record) * BUFFSIZE);
 	file = createFile(filename, nOfpages);
 }
 
@@ -13,17 +13,17 @@ fstream* Index::createFile(string fileName, int nOfpages) {
 	fstream* f = new fstream();
 	f->open(fileName, flags);
 	int page = 0;
-	memset(buffer, 0, sizeof(IdxRec) * BUFFSIZE);
+	memset(buffer, 0, sizeof(Record) * BUFFSIZE);
 	while (nOfpages--) {
 		writeBlock(f,page++);
 	}
 	return f;
 }
 int Index::readBlock(fstream* currfile, int blockNum) {
-	currfile->seekg(blockNum * (sizeof(IdxRec) * BUFFSIZE));
-	int bytesRead = currfile->read((char*)buffer, sizeof(IdxRec)* BUFFSIZE).gcount();
-	if (bytesRead < sizeof(IdxRec) * BUFFSIZE) {
-		memset((char*)buffer + bytesRead, 0, sizeof(IdxRec) * BUFFSIZE - bytesRead); //jeœli przeczytano mniej ni¿ ca³¹ stronê, wyzeruj dalsze
+	currfile->seekg(blockNum * (sizeof(Record) * BUFFSIZE));
+	int bytesRead = currfile->read((char*)buffer, sizeof(Record)* BUFFSIZE).gcount();
+	if (bytesRead < sizeof(Record) * BUFFSIZE) {
+		memset((char*)buffer + bytesRead, 0, sizeof(Record) * BUFFSIZE - bytesRead); //jeœli przeczytano mniej ni¿ ca³¹ stronê, wyzeruj dalsze
 	}
 	//nOfBuff = bytesRead / sizeof(IdxRec);
 	return bytesRead;
@@ -34,9 +34,9 @@ int Index::writeBlock(fstream* currfile, int blockNum) {
 	//DOPOP
 	//sprawdz iloœæ w buforze
 	const char* serialRec = (const char*)buffer;
-	currfile->seekp(blockNum*(sizeof(IdxRec) * BUFFSIZE));
+	currfile->seekp(blockNum*(sizeof(Record) * BUFFSIZE));
 	size_t poc = currfile->tellp();
-	currfile->write(serialRec, sizeof(IdxRec) * BUFFSIZE);
+	currfile->write(serialRec, sizeof(Record) * BUFFSIZE);
 	size_t written = currfile->tellp();
 	written = written - poc;
 	//printf("Zapisano %d\n", written);
@@ -58,13 +58,13 @@ int Index::readIdxRecord(int key) {
 				iKey = buffer[i].key;
 				iPage = buffer[i].page;
 				if (buffer[i].key == key) {
-					//printf("Klucz %d powinien byc key=%d,page=%d\n", key, iKey, iPage);
+					printf("Klucz %d powinien byc key=%d,page=%d\n", key, iKey, iPage);
 					return iPage;
 				}
 			}
 		}		
 	} while (bytesRead != 0);
-	//printf("Klucz %d powinien byc key=%d,page=%d\n", key, iKey, iPage);
+	printf("Klucz %d powinien byc key=%d,page=%d\n", key, iKey, iPage);
 	return iPage;
 	//je¿eli 0 to nie ma bo klucz < najmniejszy
 }

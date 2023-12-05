@@ -11,14 +11,16 @@ UWAGA: Indeksy w organizacji indeksowo-sekwencyjnej nazywamy indeksami rzadkimi 
 nie wszystkie rekordy s¹ indeksowane, a jedynie tylko pierwsze na stronach obszaru g³ównego.
 */
 class Index{
+public:
+	struct Record {
+		int key;
+		int page;
+	};
 private:
 	fstream* file = NULL;
 	string filename = "";
 	ios_base::openmode flags = 0;
-	struct IdxRec {
-		int key;
-		int page;
-	}*buffer;
+	Record *buffer;
 	uint32_t BUFFSIZE;
 	fstream* createFile(string fileName, int nOfpages);
 	int readBlock(fstream* currfile, int blockNum); //writeToBuff();

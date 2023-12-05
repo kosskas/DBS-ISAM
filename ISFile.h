@@ -73,33 +73,30 @@ private:
 	Record NIL;
 
 	int bf, bi;
+	int realN;
+	int realV;
+	int mainPages;
+	int ofPages;
+	int idxPages;
 
 	int maxOFsize;
-
 	bool fileswitcher;
 	Index* createIndex(string idxName, int nOfpages);
 
-	///STAN - wersja prostsza
 	vector<Record> getChain(Record first);
 	void insertToOf(int key, Data data, short *startptr);
+
+	int searchIfDeleted(int key, int* found, Record* rec);
 public:
-	///rekordów w ob. głównym
 	int NrecordInMain;
-	//rekordów w nadmiarze
 	int VrecordInOf;
 	ISFile(uint32_t BUFFSIZE);
-
-	int searchRecord(int key, int* found, Record* rec, bool del = false);
-	int searchInOF(int key, int* found, Record* rec, bool del = false);
-	void searchInOF2(short ptr, int key, int* found, Record* rec, bool del = false);
-
+	int searchRecord(int key, int* found, Record* rec);
+	void searchInOF2(short ptr, int key, int* found, Record* rec);
 	void insertRecord(int key, Data data);
-	void removeRecord(int key);
-	//TODO
+	Record removeRecord(int key);
 	void updateRecord(int key, Data data);
 	void updateRecord(int oldkey, int newkey);
-
-
 	void clearFile();
 	void reorganiseFile(double alpha);
 	void info(double alpha);
@@ -109,59 +106,3 @@ public:
 	void printOF();
 	~ISFile();
 };
-
-/*
-	///Odczytaj stronę od
-	while (bytesRead = overflow->readBlock(page)) {
-		//znajdz czy taki jest
-		for (int i = 0; i < BUFFSIZE; i++) {
-			offset++;
-			if (ptr == offset) {
-				//już lista
-				if (key < overflow->buffer[i].key) {
-					//podmień
-					Data temp = data;
-					int tempk = key;
-
-					data = overflow->buffer[i].data;
-					key = overflow->buffer[i].key;
-					del = overflow->buffer[i].deleted;
-
-					overflow->buffer[i].data = temp;
-					overflow->buffer[i].key = tempk;
-					overflow->buffer[i].deleted = 0;
-					printf("SWAP\n");
-					overflow->writeBlock(page);
-				}
-				prevpage = page;
-				prev = offset;
-				ptr = overflow->buffer[i].ofptr;
-				count++;
-
-			}
-			if (overflow->buffer[i].key == 0) {
-				printf("znaleziono miejsce w oF\n");
-				//wstaw w wolne miejce
-				overflow->buffer[i].key = key;
-				overflow->buffer[i].data = data;
-				overflow->buffer[i].deleted = del;
-
-				//Zaktualizuj wskaźniki
-				if(count ==0)
-					*startptr = offset; //ten jest za kluczem z maina
-				//zapisz rekord
-				overflow->writeBlock(page);
-				if (prev) {
-					//prev ma wskazywać na offset
-					bytesRead = overflow->readBlock(prevpage);
-					overflow->buffer[(prev-1)%BUFFSIZE].ofptr = offset;
-					overflow->writeBlock(prevpage);
-				}
-
-				VrecordInOf++;
-				return;
-			}
-		}
-		page++;
-	}
-*/

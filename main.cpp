@@ -1,11 +1,9 @@
 #include <iostream>
 #include <string>
-#include <math.h>
-#include "Index.h"
-#include "ISFile.h"
 #include <random>
-using namespace std;
+#include "ISFile.h"
 
+using namespace std;
 
 int main(int argc, char** argv) {
     random_device rd;
@@ -35,7 +33,7 @@ int main(int argc, char** argv) {
             Record found;
             cin >> key;
             int ret = isfile.searchRecord(key,&exits,&found);
-            if (exits)
+            if (exits && !found.deleted)
                 printf("a=%d b=%d h=%d\n",found.data.a, found.data.b, found.data.h);
             else
                 printf("0\n");
@@ -43,8 +41,6 @@ int main(int argc, char** argv) {
         if (cmd == 'u') {
             cin >> key >> a >> b >> h;
             isfile.updateRecord(key,{a,b,h});
-            //update do zmiany
-            //nie zmieniamy usuniêtych
         }
         if (cmd == 'U') {
             int oldkey = 0;
@@ -70,7 +66,5 @@ int main(int argc, char** argv) {
             break;
         printf("\nBylo zapisow %d\t odczytow %d\n", nOfWrites, nOfReads);
     }
-
-    
 	return 0;
 }
