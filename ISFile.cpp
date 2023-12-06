@@ -1,18 +1,19 @@
 #include "ISFile.h"
 #define clearBuffer(x) memset(x, 0, sizeof(Record) * BUFFSIZE)
 
-ISFile::ISFile(uint32_t BUFFSIZE) {
+ISFile::ISFile(uint32_t BUFFSIZE, double alpha) {
 	fileswitcher = true;
+	this->alpha = alpha;
 	this->BUFFSIZE = BUFFSIZE;
-	this->IDXBUFFSIZE = 10;
+	this->IDXBUFFSIZE = ceil(double(sizeof(Record) * BUFFSIZE) / sizeof(Index::Record));
 	filename = "file0";
 	ofname = "of0";
 	idxname = "idx0";
 
-	int ofpages = 1;
-	
-	file = new BFile(filename, BUFFSIZE, 1);
-	overflow = new BFile(ofname, BUFFSIZE, ofpages);
+	setVars();
+
+	file = new BFile(filename, BUFFSIZE, mainPages);
+	overflow = new BFile(ofname, BUFFSIZE, ofPages);
 
 	NIL.key = -1;
 	NIL.data = { -1,-1,-1 };
@@ -22,18 +23,22 @@ ISFile::ISFile(uint32_t BUFFSIZE) {
 	file->buffer[0] = NIL;
 	file->writeBlock(0);
 
-	idx = createIndex(idxname, 1);
+	idx = createIndex(idxname, idxPages);
 
 	bf = ceil(double(sizeof(Record) * BUFFSIZE) / (sizeof(Record)));
-	bi = ceil(double(sizeof(Index::Record) * IDXBUFFSIZE) / sizeof(Index::Record));
+	bi = ceil(double(sizeof(Record) * BUFFSIZE) / sizeof(Index::Record));
+}
 
-
-
-	printf("bf = %d\nbi = %d\n", bf, bi);
-
+void ISFile::setVars() {
+	ofPages = 1;
+	mainPages = 1;
+	idxPages = 1;
+	VNratio = 0.1;
 	NrecordInMain = 1;
 	VrecordInOf = 0;
-	maxOFsize = ofpages*BUFFSIZE;
+	realN = 1;
+	realV = 0;
+	maxOFsize = ofPages * BUFFSIZE;
 }
 
 Index* ISFile::createIndex(string idxName, int nOfpages) {
@@ -115,7 +120,7 @@ void ISFile::insertRecord(int key, Data data) {
 	frec.data = data;
 	int page = searchIfDeleted(key,&found,&frec);
 	if (found) {
-		printf("Taki klucz juz istnieje\n");
+		////printf("Taki klucz juz istnieje\n");
 		return;
 	}
 
@@ -123,22 +128,23 @@ void ISFile::insertRecord(int key, Data data) {
 	///znajdz miejsce
 	for (int i = 0; i < BUFFSIZE; i++) {
 		if (i + 1 < BUFFSIZE && file->buffer[i].key < key && file->buffer[i+1].key == 0) {
-			printf("znaleziono miejsce\n");
+			//printf("znaleziono miejsce\n");
 			file->buffer[i + 1].key = key;
 			file->buffer[i + 1].data = data;
 
 			file->writeBlock(page);
 			NrecordInMain++;
+			realN++;
 			return;
 		}
 		if (i + 1 >= BUFFSIZE || i + 1 < BUFFSIZE && file->buffer[i].key < key && file->buffer[i + 1].key > key) {
 			//nie ma mniejsca
-			printf("daj OV");
+			//printf("daj OV");
 			insertToOf(key, data, &file->buffer[i].ofptr);
 			file->writeBlock(page);
-			if (VrecordInOf == maxOFsize) {
+			if (realV == maxOFsize) {
 				//printf("\nBufor pelen - reorganizacja\n");
-				reorganiseFile(0.5);
+				reorganiseFile(alpha);
 			}
 			return;
 		}
@@ -193,7 +199,7 @@ void ISFile::insertToOf(int key, Data data, short *startptr) {
 		for (int i = 0; i < BUFFSIZE; i++) {
 			offset++;
 			if (overflow->buffer[i].key == 0) {
-				printf("znaleziono miejsce w oF\n");
+				//printf("znaleziono miejsce w oF\n");
 				//wstaw w wolne miejce
 				overflow->buffer[i].key = key;
 				overflow->buffer[i].data = data;
@@ -212,6 +218,7 @@ void ISFile::insertToOf(int key, Data data, short *startptr) {
 				}
 
 				VrecordInOf++;
+				realV++;
 				return;
 			}
 		}
@@ -232,6 +239,7 @@ int ISFile::searchIfDeleted(int key, int* found, Record* rec) {
 			if (file->buffer[i].deleted) {
 				file->buffer[i].deleted = 0;
 				file->writeBlock(idxpage);
+				NrecordInMain++;
 			}
 			break;
 		}
@@ -248,6 +256,7 @@ int ISFile::searchIfDeleted(int key, int* found, Record* rec) {
 					if (overflow->buffer[index].deleted) {
 						overflow->buffer[index].deleted = 0;
 						overflow->writeBlock(ofpage);
+						VrecordInOf++;
 					}
 					break;
 				}
@@ -268,7 +277,8 @@ Record ISFile::removeRecord(int key) {
 		if (file->buffer[i].key == key && !file->buffer[i].deleted) {
 			file->buffer[i].deleted = 1;
 			file->writeBlock(idxpage);
-			printf("Usunieto\n");
+			///printf("Usunieto\n");
+			NrecordInMain--;
 			return file->buffer[i];
 		}
 		else if (file->buffer[i].ofptr) {
@@ -281,14 +291,15 @@ Record ISFile::removeRecord(int key) {
 				if (overflow->buffer[index].key == key && !overflow->buffer[index].deleted) {
 					overflow->buffer[index].deleted = 1;
 					overflow->writeBlock(ofpage);
-					printf("Usunieto\n");
+					///printf("Usunieto\n");
+					VrecordInOf--;
 					return overflow->buffer[index];
 				}
 				currPtr = overflow->buffer[index].ofptr;
 			}
 		}
 	}
-	printf("Nie ma takiego rekordu\n");
+	///printf("Nie ma takiego rekordu\n");
 	return ret;
 }
 
@@ -347,7 +358,7 @@ void ISFile::reorganiseFile(double alpha) {
 
 	int Snnew = ceil(double(NrecordInMain + VrecordInOf) / double(bf * alpha));
 	int Sinew = ceil(double(Snnew) / double(bi));
-	int Sonew = ceil(double(0.333 * NrecordInMain));
+	int Sonew = ceil(double(VNratio * NrecordInMain));
 
 	NrecordInMain = 1;
 	VrecordInOf = 0;
@@ -415,18 +426,30 @@ void ISFile::reorganiseFile(double alpha) {
 	delete idx;
 	idx = createIndex(newidxname, Sinew);
 	maxOFsize = Sonew * BUFFSIZE;
+
+	realN = NrecordInMain;
+	realV = 0;
+
+	mainPages = Snnew;
+	ofPages = Sonew;
+	idxPages = Sinew;
+
+	filename = newfilename;
+	ofname = newofname;
+	idxname = newidxname;
 }
 
 void ISFile::info(double alpha) {
-	printf("bf = %d\nbi = %d\n", bf, bi);
-	printf("Strona dyskowa: %d wpisy\nStrona indeksu: %d wpisy\n", BUFFSIZE, IDXBUFFSIZE);
-	printf("Jest rekordow: %d\nW nadmiarze: %d\n", NrecordInMain, VrecordInOf);
+	printf("bf = %d\tbi = %d\n", bf, bi);
+	printf("Stron na ob. glowny %d\tStron na of %d\tStron na idx %d\n",mainPages,ofPages,idxPages);
+	printf("Jest rekordow nieusunietych: %d\tW nadmiarze: %d\n", NrecordInMain, VrecordInOf);
+	printf("Jest rekordow wszystkich: %d\tW nadmiarze: %d\n", realN, realV);
+	printf("Wsp V/N %lf\n", VNratio);
 	int Snnew = ceil(double(NrecordInMain + VrecordInOf) / double(bf * alpha));
 	int Sinew = ceil(double(Snnew) / double(bi));
-	int Sonew = ceil(double(0.333 * NrecordInMain));
-	int idx2 = ceil(double(Snnew) / double(IDXBUFFSIZE));
+	int Sonew = ceil(double(VNratio * NrecordInMain));
 	printf("Alfa %lf\n", alpha);
-	printf("Bedzie %d stron\nBedzie %d stron indeksu\nBedzie %d stron nadmiaru\nIdxTest2 %d", Snnew, Sinew, Sonew, idx2);
+	printf("Bedzie %d stron\tBedzie %d stron indeksu\tBedzie %d stron nadmiaru\n", Snnew, Sinew, Sonew);
 }
 
 void ISFile::printRecords() {
@@ -489,15 +512,24 @@ void ISFile::printOF() {
 	}
 }
 
+void ISFile::printFileSize() {
+	int filesize = GetFileSize(filename);//BUFFSIZE * mainPages;
+	int ovsize = GetFileSize(ofname);//BUFFSIZE * ofPages;
+	int idxsize = GetFileSize(idxname);
+	printf("\n%d %d\n", NrecordInMain + VrecordInOf, filesize);
+	//printf("Plik %d\tOv %d\tIdx %d\n", filesize, ovsize, idxsize);
+}
+
 void ISFile::clearFile() {
 	delete file;
 	delete overflow;
 	delete idx;
+
+	setVars();
 	file = new BFile(filename, BUFFSIZE, 1);
 	overflow = new BFile(ofname, BUFFSIZE, 1);
 
-	file->buffer[0].key = -1;
-	file->buffer[0].data = { -1,-1,-1 };
+	file->buffer[0] = NIL;
 	file->writeBlock(0);
 
 	idx = createIndex(idxname, 1);
@@ -511,6 +543,13 @@ ISFile::~ISFile() {
 	if (overflow)
 		delete overflow;
 }
+
+int GetFileSize(string filename) {
+	struct stat stat_buf;
+	int rc = stat(filename.c_str(), &stat_buf);
+	return rc == 0 ? stat_buf.st_size : -1;
+}
+
 /*
 	/*SEARCHINOF
 	//sprwadz czy nie jest w of
@@ -556,3 +595,5 @@ int ISFile::searchInOF(int key, int* found, Record* rec, bool del) {
 	return page - 1;
 }
 */
+
+

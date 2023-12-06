@@ -8,6 +8,7 @@
 #include <math.h>
 #include <algorithm>
 #include <vector>
+#include <sys/stat.h>
 using namespace std;
 
 /*
@@ -78,6 +79,8 @@ private:
 	int mainPages;
 	int ofPages;
 	int idxPages;
+	double VNratio;
+	double alpha;
 
 	int maxOFsize;
 	bool fileswitcher;
@@ -87,10 +90,11 @@ private:
 	void insertToOf(int key, Data data, short *startptr);
 
 	int searchIfDeleted(int key, int* found, Record* rec);
+	void setVars();
 public:
 	int NrecordInMain;
 	int VrecordInOf;
-	ISFile(uint32_t BUFFSIZE);
+	ISFile(uint32_t BUFFSIZE, double alfa);
 	int searchRecord(int key, int* found, Record* rec);
 	void searchInOF2(short ptr, int key, int* found, Record* rec);
 	void insertRecord(int key, Data data);
@@ -104,5 +108,7 @@ public:
 	void printIndex();
 	void printStruct();
 	void printOF();
+	void printFileSize();
 	~ISFile();
 };
+int GetFileSize(string filename);

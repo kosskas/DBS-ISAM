@@ -43,7 +43,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="recGen.py" />
     <None Include="idx0" />
     <None Include="file0" />
   </ItemGroup>

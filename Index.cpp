@@ -58,13 +58,13 @@ int Index::readIdxRecord(int key) {
 				iKey = buffer[i].key;
 				iPage = buffer[i].page;
 				if (buffer[i].key == key) {
-					printf("Klucz %d powinien byc key=%d,page=%d\n", key, iKey, iPage);
+					//printf("Klucz %d powinien byc key=%d,page=%d\n", key, iKey, iPage);
 					return iPage;
 				}
 			}
 		}		
 	} while (bytesRead != 0);
-	printf("Klucz %d powinien byc key=%d,page=%d\n", key, iKey, iPage);
+	//printf("Klucz %d powinien byc key=%d,page=%d\n", key, iKey, iPage);
 	return iPage;
 	//je¿eli 0 to nie ma bo klucz < najmniejszy
 }
