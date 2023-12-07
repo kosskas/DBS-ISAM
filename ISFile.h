@@ -73,14 +73,7 @@ private:
 
 	Record NIL;
 
-	int bf, bi;
-	int realN;
-	int realV;
-	int mainPages;
-	int ofPages;
-	int idxPages;
-	double VNratio;
-	double alpha;
+
 
 	int maxOFsize;
 	bool fileswitcher;
@@ -92,6 +85,15 @@ private:
 	int searchIfDeleted(int key, int* found, Record* rec);
 	void setVars();
 public:
+	int bf, bi;
+	int realN;
+	int realV;
+	int mainPages;
+	int ofPages;
+	int idxPages;
+	double VNratio;
+	double alpha;
+	int idxRecs;
 	int NrecordInMain;
 	int VrecordInOf;
 	ISFile(uint32_t BUFFSIZE, double alfa);
@@ -102,13 +104,13 @@ public:
 	void updateRecord(int key, Data data);
 	void updateRecord(int oldkey, int newkey);
 	void clearFile();
-	void reorganiseFile(double alpha);
+	void reorganiseFile();
 	void info(double alpha);
 	void printRecords();
 	void printIndex();
 	void printStruct();
 	void printOF();
-	void printFileSize();
+	void getFileSize(int* filesize, int* ovsize, int* idxsize);
 	~ISFile();
 };
 int GetFileSize(string filename);

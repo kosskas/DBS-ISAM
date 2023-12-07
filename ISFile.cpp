@@ -39,6 +39,7 @@ void ISFile::setVars() {
 	realN = 1;
 	realV = 0;
 	maxOFsize = ofPages * BUFFSIZE;
+	idxRecs = 0;
 }
 
 Index* ISFile::createIndex(string idxName, int nOfpages) {
@@ -50,6 +51,7 @@ Index* ISFile::createIndex(string idxName, int nOfpages) {
 		//weŸ pierwszy i go zapisz do indeksu
 		if (file->buffer[0].key != 0) {
 			tmp->writeIdxRecord(file->buffer[0].key, page);
+			idxRecs++;
 		}
 		page++;
 	}
@@ -78,10 +80,14 @@ int ISFile::searchRecord(int key, int* found, Record* rec) {
 void ISFile::searchInOF2(short ptr, int key, int* found, Record* rec) {
 	int bytesRead = 0;
 	short currPtr = ptr;
+	int prevPage = -1;
 	while (currPtr != 0) {
 		int ofpage = ceil(double(currPtr) / BUFFSIZE) - 1;
 		int index = (currPtr - 1) % BUFFSIZE;
-		bytesRead = overflow->readBlock(ofpage);
+		if (ofpage != prevPage) {
+			bytesRead = overflow->readBlock(ofpage);
+		}
+		prevPage = ofpage;
 		if (overflow->buffer[index].key == key) {
 			*found = 1;
 			*rec = overflow->buffer[index];
@@ -95,15 +101,18 @@ vector<Record> ISFile::getChain(Record first) {
 	vector<Record> temp;
 	temp.push_back(first);
 
-	int page = 0;
 	int bytesRead = 0;
 	short offset = 0;
 	short currPtr = first.ofptr;
-	int end = false;
+	int prevPage = -1;
+	
 	while (currPtr != 0) {
 		int ofpage = ceil(double(currPtr) / BUFFSIZE) - 1;
 		int index = (currPtr - 1) % BUFFSIZE;
-		bytesRead = overflow->readBlock(ofpage);
+		if (ofpage != prevPage) {
+			bytesRead = overflow->readBlock(ofpage);
+		}
+		prevPage = ofpage;
 		temp.push_back(overflow->buffer[index]);
 		currPtr = overflow->buffer[index].ofptr;
 	}
@@ -144,7 +153,7 @@ void ISFile::insertRecord(int key, Data data) {
 			file->writeBlock(page);
 			if (realV == maxOFsize) {
 				//printf("\nBufor pelen - reorganizacja\n");
-				reorganiseFile(alpha);
+				reorganiseFile();
 			}
 			return;
 		}
@@ -170,7 +179,7 @@ void ISFile::insertToOf(int key, Data data, short *startptr) {
 	int bytesRead = 0;
 	short offset = 0,del=0;
 	int count = 0;
-
+	int lastPage = -1;
 
 	/*
 	je¿eli startptr jest pusty to wstaw w wolne
@@ -180,7 +189,11 @@ void ISFile::insertToOf(int key, Data data, short *startptr) {
 	while (ptr != 0) {
 		int ofpage = ceil(double(ptr) / BUFFSIZE) -1;
 		int index = (ptr-1) % BUFFSIZE;
-		bytesRead = overflow->readBlock(ofpage);
+		//bytesRead = overflow->readBlock(ofpage);
+		if (ofpage != lastPage) {
+			bytesRead = overflow->readBlock(ofpage);
+		}
+		lastPage = ofpage;
 		if (key < overflow->buffer[index].key) {
 			next = ptr;
 			break;
@@ -246,10 +259,14 @@ int ISFile::searchIfDeleted(int key, int* found, Record* rec) {
 		else if (file->buffer[i].ofptr) {
 			int bytesRead = 0;
 			short currPtr = file->buffer[i].ofptr;
+			int prevPage = -1;
 			while (currPtr != 0) {
 				int ofpage = ceil(double(currPtr) / BUFFSIZE) - 1;
 				int index = (currPtr - 1) % BUFFSIZE;
-				bytesRead = overflow->readBlock(ofpage);
+				if (ofpage != prevPage) {
+					bytesRead = overflow->readBlock(ofpage);
+				}
+				prevPage = ofpage;
 				if (overflow->buffer[index].key == key) {
 					*found = 1;
 					overflow->buffer[index].data = rec->data;
@@ -284,10 +301,14 @@ Record ISFile::removeRecord(int key) {
 		else if (file->buffer[i].ofptr) {
 			int bytesRead = 0;
 			short currPtr = file->buffer[i].ofptr;
+			int prevPage = -1;
 			while (currPtr != 0) {
 				int ofpage = ceil(double(currPtr) / BUFFSIZE) - 1;
 				int index = (currPtr - 1) % BUFFSIZE;
-				bytesRead = overflow->readBlock(ofpage);
+				if (ofpage != prevPage) {
+					bytesRead = overflow->readBlock(ofpage);
+				}
+				prevPage = ofpage;
 				if (overflow->buffer[index].key == key && !overflow->buffer[index].deleted) {
 					overflow->buffer[index].deleted = 1;
 					overflow->writeBlock(ofpage);
@@ -317,10 +338,14 @@ void ISFile::updateRecord(int key, Data data) {
 		else if (file->buffer[i].ofptr) {
 			int bytesRead = 0;
 			short currPtr = file->buffer[i].ofptr;
+			int prevPage = -1;
 			while (currPtr != 0) {
 				int ofpage = ceil(double(currPtr) / BUFFSIZE) - 1;
 				int index = (currPtr - 1) % BUFFSIZE;
-				bytesRead = overflow->readBlock(ofpage);
+				if (ofpage != prevPage) {
+					bytesRead = overflow->readBlock(ofpage);
+				}
+				prevPage = ofpage;
 				if (overflow->buffer[index].key == key && !overflow->buffer[index].deleted) {
 					overflow->buffer[index].data = data;
 					overflow->writeBlock(ofpage);
@@ -341,7 +366,7 @@ void ISFile::updateRecord(int oldkey, int newkey) {
 }
 //Raczej nie dojdzie do sytuacji przy reorganizacji ¿e jakieœ strony bêd¹ puste
 //Tyle ile stron tyle w idx, nie ma rozsz idxa
-void ISFile::reorganiseFile(double alpha) {
+void ISFile::reorganiseFile() {
 	//printf("reorg");
 	string newfilename, newidxname, newofname;
 	if (fileswitcher) {
@@ -512,11 +537,11 @@ void ISFile::printOF() {
 	}
 }
 
-void ISFile::printFileSize() {
-	int filesize = GetFileSize(filename);//BUFFSIZE * mainPages;
-	int ovsize = GetFileSize(ofname);//BUFFSIZE * ofPages;
-	int idxsize = GetFileSize(idxname);
-	printf("\n%d %d\n", NrecordInMain + VrecordInOf, filesize);
+void ISFile::getFileSize(int *filesize, int* ovsize, int* idxsize) {
+	*filesize = GetFileSize(filename);//BUFFSIZE * mainPages;
+	*ovsize = GetFileSize(ofname);//BUFFSIZE * ofPages;
+	*idxsize = GetFileSize(idxname);
+	//printf("m=%d o=%d i=%d\n",filesize, ovsize, idxsize);
 	//printf("Plik %d\tOv %d\tIdx %d\n", filesize, ovsize, idxsize);
 }
 
