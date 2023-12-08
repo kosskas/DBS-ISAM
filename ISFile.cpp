@@ -77,9 +77,9 @@ int ISFile::searchRecord(int key, int* found, Record* rec) {
 	return idxpage;
 }
 
-void ISFile::searchInOF2(short ptr, int key, int* found, Record* rec) {
+void ISFile::searchInOF2(int ptr, int key, int* found, Record* rec) {
 	int bytesRead = 0;
-	short currPtr = ptr;
+	int currPtr = ptr;
 	int prevPage = -1;
 	while (currPtr != 0) {
 		int ofpage = ceil(double(currPtr) / BUFFSIZE) - 1;
@@ -102,8 +102,8 @@ vector<Record> ISFile::getChain(Record first) {
 	temp.push_back(first);
 
 	int bytesRead = 0;
-	short offset = 0;
-	short currPtr = first.ofptr;
+	int offset = 0;
+	int currPtr = first.ofptr;
 	int prevPage = -1;
 	
 	while (currPtr != 0) {
@@ -129,7 +129,7 @@ void ISFile::insertRecord(int key, Data data) {
 	frec.data = data;
 	int page = searchIfDeleted(key,&found,&frec);
 	if (found) {
-		////printf("Taki klucz juz istnieje\n");
+		printf("Taki klucz juz istnieje\n");
 		return;
 	}
 
@@ -157,16 +157,15 @@ void ISFile::insertRecord(int key, Data data) {
 			}
 			return;
 		}
-		///przypadek gdy key == key, na nowo wstawiamy usuniety klucz
 	}
 	
 }
 
-void ISFile::insertToOf(int key, Data data, short *startptr) {
+void ISFile::insertToOf(int key, Data data, int *startptr) {
 ///sprawdz czy juz inny z ov nie wskazuje na niego?
 ///jeœli of pe³en to reogranizuj
-	short ptr = *startptr, next = 0, prev = 0;
-	int prevpage = -1, nextpage = 0;
+	int ptr = *startptr, next = 0, prev = 0;
+	//int prevpage = -1, nextpage = 0;
 	/*
 	1. Dodano pierwszy raz - zmieñ startprt
 	2. Dodano na koniec, zmieñ ¿e przedostatni wskazuje na ost(zmieniajace siê strony) i nie zmieniaj startptra JEST 
@@ -177,7 +176,7 @@ void ISFile::insertToOf(int key, Data data, short *startptr) {
 
 	int page = 0;
 	int bytesRead = 0;
-	short offset = 0,del=0;
+	int offset = 0,del=0;
 	int count = 0;
 	int lastPage = -1;
 
@@ -194,17 +193,20 @@ void ISFile::insertToOf(int key, Data data, short *startptr) {
 			bytesRead = overflow->readBlock(ofpage);
 		}
 		lastPage = ofpage;
+
+
 		if (key < overflow->buffer[index].key) {
 			next = ptr;
 			break;
 		}
-		prevpage = ofpage;
+		//prevpage = ofpage;
 		//prev = index+1; ///TO SAMO BO RESZTA Z DZIELENIA??
 		prev = ptr;
 		ptr = overflow->buffer[index].ofptr;
 		
 		count++;
 	}
+	//printf("prev=%d\tnext=%d\n", prev, next);
 	page = 0;
 	//wstaw na koniec
 	while (bytesRead = overflow->readBlock(page)) {
@@ -225,9 +227,11 @@ void ISFile::insertToOf(int key, Data data, short *startptr) {
 				overflow->writeBlock(page);
 				if (prev) {
 					//prev ma wskazywaæ na offset
-					bytesRead = overflow->readBlock(prevpage);
+					bytesRead = overflow->readBlock(ceil(double(prev) / BUFFSIZE) - 1);
+					//bytesRead = overflow->readBlock(prevpage);
 					overflow->buffer[(prev - 1) % BUFFSIZE].ofptr = offset;
-					overflow->writeBlock(prevpage);
+					overflow->writeBlock(ceil(double(prev) / BUFFSIZE) - 1);
+					//overflow->writeBlock(prevpage);
 				}
 
 				VrecordInOf++;
@@ -258,7 +262,7 @@ int ISFile::searchIfDeleted(int key, int* found, Record* rec) {
 		}
 		else if (file->buffer[i].ofptr) {
 			int bytesRead = 0;
-			short currPtr = file->buffer[i].ofptr;
+			int currPtr = file->buffer[i].ofptr;
 			int prevPage = -1;
 			while (currPtr != 0) {
 				int ofpage = ceil(double(currPtr) / BUFFSIZE) - 1;
@@ -294,13 +298,13 @@ Record ISFile::removeRecord(int key) {
 		if (file->buffer[i].key == key && !file->buffer[i].deleted) {
 			file->buffer[i].deleted = 1;
 			file->writeBlock(idxpage);
-			///printf("Usunieto\n");
+			printf("Usunieto\n");
 			NrecordInMain--;
 			return file->buffer[i];
 		}
 		else if (file->buffer[i].ofptr) {
 			int bytesRead = 0;
-			short currPtr = file->buffer[i].ofptr;
+			int currPtr = file->buffer[i].ofptr;
 			int prevPage = -1;
 			while (currPtr != 0) {
 				int ofpage = ceil(double(currPtr) / BUFFSIZE) - 1;
@@ -312,7 +316,7 @@ Record ISFile::removeRecord(int key) {
 				if (overflow->buffer[index].key == key && !overflow->buffer[index].deleted) {
 					overflow->buffer[index].deleted = 1;
 					overflow->writeBlock(ofpage);
-					///printf("Usunieto\n");
+					printf("Usunieto\n");
 					VrecordInOf--;
 					return overflow->buffer[index];
 				}
@@ -320,7 +324,7 @@ Record ISFile::removeRecord(int key) {
 			}
 		}
 	}
-	///printf("Nie ma takiego rekordu\n");
+	printf("Nie ma takiego rekordu\n");
 	return ret;
 }
 
@@ -337,7 +341,7 @@ void ISFile::updateRecord(int key, Data data) {
 		}
 		else if (file->buffer[i].ofptr) {
 			int bytesRead = 0;
-			short currPtr = file->buffer[i].ofptr;
+			int currPtr = file->buffer[i].ofptr;
 			int prevPage = -1;
 			while (currPtr != 0) {
 				int ofpage = ceil(double(currPtr) / BUFFSIZE) - 1;

@@ -8,11 +8,14 @@ using namespace std;
 void generate() {
     random_device rd;
     mt19937 generator(rd());
-    uniform_int_distribution<int> keys(1, 0x1004);//0x01F4
+    //mt19937 generator(2002);
+    uniform_int_distribution<int> keys(1, 0x000FFFFF);//0x01F4
     uniform_int_distribution<int> recs(1, 0x0064);
     uniform_int_distribution<int> los(0, 100);
 
-    char kom[] = { '+','-','?','u','U','o' };///50% 20% 10% 5% 10% %5
+   // char rozklad[] = { 50, 20, 10, 10, 10, 0 };//'+,'-','?','u','U','o'
+    //char rozklad[] = { 50, 20, 10,9, 10, 1 };//'+,'-','?','u','U','o'
+    char rozklad[] = { 100,0,0,0,0,0 };//'+,'-','?','u','U','o'
 
     //autoreorg ///50% 20% 10% 10% 10%
     //manreorg ///50% 20% 10% 5% 10% %5
@@ -20,30 +23,30 @@ void generate() {
 
     ///rozkl + 50%
     int rozk[6] = { 0 };
-    for (int i = 0; i < 10000; i++) {
-        int rozklad = los(generator);
-        if (rozklad < 50) {//+
+    for (int i = 0; i < 1000000; i++) {
+        int test = los(generator);
+        if (test <= rozklad[0]) {//+
             printf("+%d %d %d %d\n", keys(generator), recs(generator), recs(generator), recs(generator));
             rozk[0]++;
         }
-        else if (rozklad < 70) {//-
+        else if (test <= rozklad[0]+ rozklad[1]) {//-
             printf("-%d\n", keys(generator));
             rozk[1]++;
         }
-        else if (rozklad < 80) {//?
+        else if (test <= rozklad[0] + rozklad[1]+ rozklad[2]) {//?
             printf("?%d\n", keys(generator));
             rozk[2]++;
         }
-        else if (rozklad < 85) {//u //85
+        else if (test <= rozklad[0] + rozklad[1]+ rozklad[2] + rozklad[3]) {//u //85
             printf("u%d %d %d %d\n", keys(generator), recs(generator), recs(generator), recs(generator));
             rozk[3]++;
         }
-        else if (rozklad < 95) {//U //95
+        else if (test <= rozklad[0] + rozklad[1] + rozklad[2] + rozklad[3] + rozklad[4]) {//U //95
             printf("U%d %d\n", keys(generator), keys(generator));
             rozk[4]++;
         }
         
-        else if (rozklad < 100) {//o
+        else if (test <= rozklad[0] + rozklad[1] + rozklad[2] + rozklad[3] + rozklad[4] + rozklad[5]) {//o
             printf("o%\n");
             rozk[5]++;
         }
@@ -66,7 +69,14 @@ int main(int argc, char** argv) {
 
     ////
     //generate();
-    ISFile isfile(4, 0.5);
+    ISFile isfile(100, 0.3);
+    /*
+    alfa\wsp.blokowo 4, 16, 64, 128//2^2, 2^4, 2^6, 2^8
+    0.5
+    0.3
+    0.2
+    0.1
+    */
     char cmd;
     int key = 0,a=0,b=0,h=0;
     int i = 0;
@@ -80,6 +90,9 @@ int main(int argc, char** argv) {
         }
         if (cmd == '+') {
             cin >> key >> a >> b >> h;  
+            if (key == 378921) {
+                int y;
+            }
             isfile.insertRecord(key, { a, b, h });
             
         }
@@ -92,10 +105,12 @@ int main(int argc, char** argv) {
             Record found;
             cin >> key;
             int ret = isfile.searchRecord(key,&exits,&found);
+            
             if (exits && !found.deleted)
                 printf("a=%d b=%d h=%d\n",found.data.a, found.data.b, found.data.h);
             else
                 printf("0\n");
+            
         }
         if (cmd == 'u') {
             cin >> key >> a >> b >> h;
@@ -128,7 +143,7 @@ int main(int argc, char** argv) {
         operacja[cmd].second++;
         if (((isfile.NrecordInMain + isfile.VrecordInOf) % 10 == 0 && (isfile.NrecordInMain + isfile.VrecordInOf) != sum)) {
             sum = (isfile.NrecordInMain + isfile.VrecordInOf);
-            printf("%d ", isfile.NrecordInMain + isfile.VrecordInOf);
+           // printf("%d ", isfile.NrecordInMain + isfile.VrecordInOf);
             int file, ov, idx;
             isfile.getFileSize(&file, &ov, &idx);
             glowny[sum] = file;

@@ -80,7 +80,7 @@ private:
 	Index* createIndex(string idxName, int nOfpages);
 
 	vector<Record> getChain(Record first);
-	void insertToOf(int key, Data data, short *startptr);
+	void insertToOf(int key, Data data, int *startptr);
 
 	int searchIfDeleted(int key, int* found, Record* rec);
 	void setVars();
@@ -98,7 +98,7 @@ public:
 	int VrecordInOf;
 	ISFile(uint32_t BUFFSIZE, double alfa);
 	int searchRecord(int key, int* found, Record* rec);
-	void searchInOF2(short ptr, int key, int* found, Record* rec);
+	void searchInOF2(int ptr, int key, int* found, Record* rec);
 	void insertRecord(int key, Data data);
 	Record removeRecord(int key);
 	void updateRecord(int key, Data data);
