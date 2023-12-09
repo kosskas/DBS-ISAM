@@ -260,29 +260,33 @@ int ISFile::searchIfDeleted(int key, int* found, Record* rec) {
 			}
 			break;
 		}
-		else if (file->buffer[i].ofptr) {
-			int bytesRead = 0;
-			int currPtr = file->buffer[i].ofptr;
-			int prevPage = -1;
-			while (currPtr != 0) {
-				int ofpage = ceil(double(currPtr) / BUFFSIZE) - 1;
-				int index = (currPtr - 1) % BUFFSIZE;
-				if (ofpage != prevPage) {
-					bytesRead = overflow->readBlock(ofpage);
-				}
-				prevPage = ofpage;
-				if (overflow->buffer[index].key == key) {
-					*found = 1;
-					overflow->buffer[index].data = rec->data;
-					if (overflow->buffer[index].deleted) {
-						overflow->buffer[index].deleted = 0;
-						overflow->writeBlock(ofpage);
-						VrecordInOf++;
+		//else if (file->buffer[i].ofptr) {
+		else if (i + 1 >= BUFFSIZE || i + 1 < BUFFSIZE && file->buffer[i].key < key && file->buffer[i + 1].key > key) {
+			if (file->buffer[i].ofptr) {
+				int bytesRead = 0;
+				int currPtr = file->buffer[i].ofptr;
+				int prevPage = -1;
+				while (currPtr != 0) {
+					int ofpage = ceil(double(currPtr) / BUFFSIZE) - 1;
+					int index = (currPtr - 1) % BUFFSIZE;
+					if (ofpage != prevPage) {
+						bytesRead = overflow->readBlock(ofpage);
 					}
-					break;
+					prevPage = ofpage;
+					if (overflow->buffer[index].key == key) {
+						*found = 1;
+						overflow->buffer[index].data = rec->data;
+						if (overflow->buffer[index].deleted) {
+							overflow->buffer[index].deleted = 0;
+							overflow->writeBlock(ofpage);
+							VrecordInOf++;
+						}
+						break;
+					}
+					currPtr = overflow->buffer[index].ofptr;
 				}
-				currPtr = overflow->buffer[index].ofptr;
 			}
+
 		}
 	}
 	return idxpage;

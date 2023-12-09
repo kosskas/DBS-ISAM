@@ -9,7 +9,8 @@ void generate() {
     random_device rd;
     mt19937 generator(rd());
     //mt19937 generator(2002);
-    uniform_int_distribution<int> keys(1, 0x000FFFFF);//0x01F4
+    uniform_int_distribution<int> keys(1, 0x01F4);//0x01F4
+   // uniform_int_distribution<int> keys(1, 0x000FFFFF);//0x01F4
     uniform_int_distribution<int> recs(1, 0x0064);
     uniform_int_distribution<int> los(0, 100);
 
@@ -69,14 +70,12 @@ int main(int argc, char** argv) {
 
     ////
     //generate();
-    ISFile isfile(100, 0.3);
-    /*
-    alfa\wsp.blokowo 4, 16, 64, 128//2^2, 2^4, 2^6, 2^8
-    0.5
-    0.3
-    0.2
-    0.1
-    */
+
+
+    int wspb = 512;// atoi(argv[1]);
+    double alfa = 0.5;// atof(argv[2]);
+    ISFile isfile(wspb, alfa);
+
     char cmd;
     int key = 0,a=0,b=0,h=0;
     int i = 0;
@@ -90,9 +89,6 @@ int main(int argc, char** argv) {
         }
         if (cmd == '+') {
             cin >> key >> a >> b >> h;  
-            if (key == 378921) {
-                int y;
-            }
             isfile.insertRecord(key, { a, b, h });
             
         }
@@ -151,10 +147,12 @@ int main(int argc, char** argv) {
             indeks[sum] = idx;
         }
         printf("\n%d\tBylo zapisow %d\t odczytow %d\n",i, nOfWrites, nOfReads);
+
     }
 
 
     ofstream output;
+    /*
     output.open("glowny.txt");
     for (auto i = glowny.begin(); i != glowny.end(); ++i) {
         output << i->first << " " << i->second << '\n';
@@ -172,8 +170,9 @@ int main(int argc, char** argv) {
         output << i->first << " " << i->second << '\n';
     }
     output.close();
-
-    output.open("operacje.txt");
+    */
+    string nazwa = "operacje" + string(argv[1]) + "-"+ string(argv[2]) + ".txt";
+    output.open(nazwa);
     char kom[] = { '+','-','?','u','U','o' };
     for (int i = 0; i < 6; i++) {
         output << kom[i] << " operacji(r+w): " << operacja[kom[i]].first << " ilosc: " << operacja[kom[i]].second << '\n';
