@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
     //generate();
 
 
-    int wspb = 512;// atoi(argv[1]);
+    int wspb = 5;// atoi(argv[1]);
     double alfa = 0.5;// atof(argv[2]);
     ISFile isfile(wspb, alfa);
 
@@ -85,7 +85,9 @@ int main(int argc, char** argv) {
     while (cin >> cmd) {
         nOfReads = nOfWrites = 0;
         if (cmd == 'r') {
-            isfile.insertRecord(keys(generator), { recs(generator), recs(generator), recs(generator) });
+            int key = keys(generator);
+            printf("Wylosowano klucz %d\n", key);
+            isfile.insertRecord(key, { recs(generator), recs(generator), recs(generator) });
         }
         if (cmd == '+') {
             cin >> key >> a >> b >> h;  
@@ -171,7 +173,8 @@ int main(int argc, char** argv) {
     }
     output.close();
     */
-    string nazwa = "operacje" + string(argv[1]) + "-"+ string(argv[2]) + ".txt";
+    
+    string nazwa = "operacje" + string(to_string(wspb)) + "-"+ string(to_string(alfa)) + ".txt";
     output.open(nazwa);
     char kom[] = { '+','-','?','u','U','o' };
     for (int i = 0; i < 6; i++) {

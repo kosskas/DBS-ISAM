@@ -70,8 +70,10 @@ int ISFile::searchRecord(int key, int* found, Record* rec) {
 			*rec = file->buffer[i];
 			break;
 		}
-		else if (file->buffer[i].ofptr) {
-			searchInOF2(file->buffer[i].ofptr, key, found, rec);
+		else if (i + 1 >= BUFFSIZE || i + 1 < BUFFSIZE && file->buffer[i].key < key && file->buffer[i + 1].key > key) {
+			if (file->buffer[i].ofptr) {
+				searchInOF2(file->buffer[i].ofptr, key, found, rec);
+			}
 		}
 	}
 	return idxpage;
@@ -306,25 +308,27 @@ Record ISFile::removeRecord(int key) {
 			NrecordInMain--;
 			return file->buffer[i];
 		}
-		else if (file->buffer[i].ofptr) {
-			int bytesRead = 0;
-			int currPtr = file->buffer[i].ofptr;
-			int prevPage = -1;
-			while (currPtr != 0) {
-				int ofpage = ceil(double(currPtr) / BUFFSIZE) - 1;
-				int index = (currPtr - 1) % BUFFSIZE;
-				if (ofpage != prevPage) {
-					bytesRead = overflow->readBlock(ofpage);
+		else if (i + 1 >= BUFFSIZE || i + 1 < BUFFSIZE && file->buffer[i].key < key && file->buffer[i + 1].key > key) {
+			if (file->buffer[i].ofptr) {
+				int bytesRead = 0;
+				int currPtr = file->buffer[i].ofptr;
+				int prevPage = -1;
+				while (currPtr != 0) {
+					int ofpage = ceil(double(currPtr) / BUFFSIZE) - 1;
+					int index = (currPtr - 1) % BUFFSIZE;
+					if (ofpage != prevPage) {
+						bytesRead = overflow->readBlock(ofpage);
+					}
+					prevPage = ofpage;
+					if (overflow->buffer[index].key == key && !overflow->buffer[index].deleted) {
+						overflow->buffer[index].deleted = 1;
+						overflow->writeBlock(ofpage);
+						printf("Usunieto\n");
+						VrecordInOf--;
+						return overflow->buffer[index];
+					}
+					currPtr = overflow->buffer[index].ofptr;
 				}
-				prevPage = ofpage;
-				if (overflow->buffer[index].key == key && !overflow->buffer[index].deleted) {
-					overflow->buffer[index].deleted = 1;
-					overflow->writeBlock(ofpage);
-					printf("Usunieto\n");
-					VrecordInOf--;
-					return overflow->buffer[index];
-				}
-				currPtr = overflow->buffer[index].ofptr;
 			}
 		}
 	}
@@ -343,23 +347,25 @@ void ISFile::updateRecord(int key, Data data) {
 			file->writeBlock(idxpage);
 			return;
 		}
-		else if (file->buffer[i].ofptr) {
-			int bytesRead = 0;
-			int currPtr = file->buffer[i].ofptr;
-			int prevPage = -1;
-			while (currPtr != 0) {
-				int ofpage = ceil(double(currPtr) / BUFFSIZE) - 1;
-				int index = (currPtr - 1) % BUFFSIZE;
-				if (ofpage != prevPage) {
-					bytesRead = overflow->readBlock(ofpage);
+		else if (i + 1 >= BUFFSIZE || i + 1 < BUFFSIZE && file->buffer[i].key < key && file->buffer[i + 1].key > key) {
+			if (file->buffer[i].ofptr) {
+				int bytesRead = 0;
+				int currPtr = file->buffer[i].ofptr;
+				int prevPage = -1;
+				while (currPtr != 0) {
+					int ofpage = ceil(double(currPtr) / BUFFSIZE) - 1;
+					int index = (currPtr - 1) % BUFFSIZE;
+					if (ofpage != prevPage) {
+						bytesRead = overflow->readBlock(ofpage);
+					}
+					prevPage = ofpage;
+					if (overflow->buffer[index].key == key && !overflow->buffer[index].deleted) {
+						overflow->buffer[index].data = data;
+						overflow->writeBlock(ofpage);
+						return;
+					}
+					currPtr = overflow->buffer[index].ofptr;
 				}
-				prevPage = ofpage;
-				if (overflow->buffer[index].key == key && !overflow->buffer[index].deleted) {
-					overflow->buffer[index].data = data;
-					overflow->writeBlock(ofpage);
-					return;
-				}
-				currPtr = overflow->buffer[index].ofptr;
 			}
 		}
 	}
@@ -419,14 +425,14 @@ void ISFile::reorganiseFile() {
 						newfile->buffer[savedIdx++] = chain[j];
 						NrecordInMain++;
 						//printf("Zapisano %d\n", chain[j].key);
-						if (savedIdx >= alpha * bf) {
+						if (savedIdx >= ceil(alpha * bf)) {
 							newfile->writeBlock(savedBlockNo++);
 							savedIdx = 0;
 							clearBuffer(newfile->buffer);
 						}
 					}
 				}
-				if (savedIdx >= alpha * bf) {
+				if (savedIdx >= ceil(alpha * bf)) {
 					newfile->writeBlock(savedBlockNo++);
 					savedIdx = 0;
 					clearBuffer(newfile->buffer);
@@ -439,7 +445,7 @@ void ISFile::reorganiseFile() {
 				newfile->buffer[savedIdx++] = file->buffer[i];
 				NrecordInMain++;
 				//printf("Zapisano %d\n", file->buffer[i].key);
-				if (savedIdx >= alpha * bf) {
+				if (savedIdx >= ceil(alpha * bf)) {
 					newfile->writeBlock(savedBlockNo++);
 					savedIdx = 0;
 					clearBuffer(newfile->buffer);
