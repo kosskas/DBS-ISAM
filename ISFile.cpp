@@ -40,6 +40,7 @@ void ISFile::setVars() {
 	realV = 0;
 	maxOFsize = ofPages * BUFFSIZE;
 	idxRecs = 0;
+	lastFreeOFPage = 0;
 }
 
 Index* ISFile::createIndex(string idxName, int nOfpages) {
@@ -120,10 +121,7 @@ vector<Record> ISFile::getChain(Record first) {
 	}
 	return temp;
 }
-/*
-		///Przypadek gdy nowa niezaindeksowana strona jest wolna - nie ma takiego przypadku
-		BUGI gdy jest wiêcej stron! NIE MA TAKIEGO PRZYPADKU!
-*/
+
 void ISFile::insertRecord(int key, Data data) {
 	int found = 0;
 	Record frec;
@@ -187,6 +185,7 @@ void ISFile::insertToOf(int key, Data data, int *startptr) {
 	jeœli startptr to skacz po stronach
 	
 	*/
+	printf("test");
 	while (ptr != 0) {
 		int ofpage = ceil(double(ptr) / BUFFSIZE) -1;
 		int index = (ptr-1) % BUFFSIZE;
@@ -210,11 +209,13 @@ void ISFile::insertToOf(int key, Data data, int *startptr) {
 	}
 	//printf("prev=%d\tnext=%d\n", prev, next);
 	page = 0;
+	page = lastFreeOFPage;
+	printf("lp %d\n", lastFreeOFPage);
 	//wstaw na koniec
 	while (bytesRead = overflow->readBlock(page)) {
-		//znajdz czy taki jest
 		for (int i = 0; i < BUFFSIZE; i++) {
-			offset++;
+			//offset++;
+			offset = BUFFSIZE*page+i+1; //ZMIENIONO OBLICZANIE NA DYNAMICZNE
 			if (overflow->buffer[i].key == 0) {
 				//printf("znaleziono miejsce w oF\n");
 				//wstaw w wolne miejce
@@ -227,6 +228,8 @@ void ISFile::insertToOf(int key, Data data, int *startptr) {
 					*startptr = offset; //ten jest za kluczem z maina
 				//zapisz rekord
 				overflow->writeBlock(page);
+				printf("Ostrona %d\n", page);
+				lastFreeOFPage = page;
 				if (prev) {
 					//prev ma wskazywaæ na offset
 					bytesRead = overflow->readBlock(ceil(double(prev) / BUFFSIZE) - 1);
@@ -425,14 +428,14 @@ void ISFile::reorganiseFile() {
 						newfile->buffer[savedIdx++] = chain[j];
 						NrecordInMain++;
 						//printf("Zapisano %d\n", chain[j].key);
-						if (savedIdx >= ceil(alpha * bf)) {
+						if (savedIdx >= (double)(alpha * bf)) {
 							newfile->writeBlock(savedBlockNo++);
 							savedIdx = 0;
 							clearBuffer(newfile->buffer);
 						}
 					}
 				}
-				if (savedIdx >= ceil(alpha * bf)) {
+				if (savedIdx >= (double)(alpha * bf)) {
 					newfile->writeBlock(savedBlockNo++);
 					savedIdx = 0;
 					clearBuffer(newfile->buffer);
@@ -445,7 +448,7 @@ void ISFile::reorganiseFile() {
 				newfile->buffer[savedIdx++] = file->buffer[i];
 				NrecordInMain++;
 				//printf("Zapisano %d\n", file->buffer[i].key);
-				if (savedIdx >= ceil(alpha * bf)) {
+				if (savedIdx >= (double)(alpha * bf)) {
 					newfile->writeBlock(savedBlockNo++);
 					savedIdx = 0;
 					clearBuffer(newfile->buffer);
@@ -468,7 +471,7 @@ void ISFile::reorganiseFile() {
 
 	realN = NrecordInMain;
 	realV = 0;
-
+	lastFreeOFPage = 0;
 	mainPages = Snnew;
 	ofPages = Sonew;
 	idxPages = Sinew;
