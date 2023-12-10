@@ -72,8 +72,8 @@ int main(int argc, char** argv) {
     //generate();
     
 
-    int wspb = 4;//atoi(argv[1]);
-    double alfa = 0.5;// atof(argv[2]);
+    int wspb = atoi(argv[1]);
+    double alfa =  atof(argv[2]);
     ISFile isfile(wspb, alfa);
 
     char cmd;

@@ -215,7 +215,7 @@ void ISFile::insertToOf(int key, Data data, int *startptr) {
 	while (bytesRead = overflow->readBlock(page)) {
 		for (int i = 0; i < BUFFSIZE; i++) {
 			//offset++;
-			offset = BUFFSIZE*page+i+1; //ZMIENIONO OBLICZANIE NA DYNAMICZNE
+			offset = BUFFSIZE*page+(i+1); //ZMIENIONO OBLICZANIE NA DYNAMICZNE
 			if (overflow->buffer[i].key == 0) {
 				//printf("znaleziono miejsce w oF\n");
 				//wstaw w wolne miejce
