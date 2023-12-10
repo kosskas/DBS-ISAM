@@ -149,8 +149,11 @@ void ISFile::insertRecord(int key, Data data) {
 		if (i + 1 >= BUFFSIZE || i + 1 < BUFFSIZE && file->buffer[i].key < key && file->buffer[i + 1].key > key) {
 			//nie ma mniejsca
 			//printf("daj OV");
+			int lastval = file->buffer[i].ofptr;
 			insertToOf(key, data, &file->buffer[i].ofptr);
-			file->writeBlock(page);
+			if (file->buffer[i].ofptr != lastval) {
+				file->writeBlock(page);
+			}
 			if (realV == maxOFsize) {
 				//printf("\nBufor pelen - reorganizacja\n");
 				reorganiseFile();
@@ -185,7 +188,6 @@ void ISFile::insertToOf(int key, Data data, int *startptr) {
 	jeœli startptr to skacz po stronach
 	
 	*/
-	printf("test");
 	while (ptr != 0) {
 		int ofpage = ceil(double(ptr) / BUFFSIZE) -1;
 		int index = (ptr-1) % BUFFSIZE;
@@ -208,9 +210,7 @@ void ISFile::insertToOf(int key, Data data, int *startptr) {
 		count++;
 	}
 	//printf("prev=%d\tnext=%d\n", prev, next);
-	page = 0;
 	page = lastFreeOFPage;
-	printf("lp %d\n", lastFreeOFPage);
 	//wstaw na koniec
 	while (bytesRead = overflow->readBlock(page)) {
 		for (int i = 0; i < BUFFSIZE; i++) {
@@ -228,7 +228,6 @@ void ISFile::insertToOf(int key, Data data, int *startptr) {
 					*startptr = offset; //ten jest za kluczem z maina
 				//zapisz rekord
 				overflow->writeBlock(page);
-				printf("Ostrona %d\n", page);
 				lastFreeOFPage = page;
 				if (prev) {
 					//prev ma wskazywaæ na offset
