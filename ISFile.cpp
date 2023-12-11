@@ -419,6 +419,8 @@ void ISFile::reorganiseFile() {
 	newfile->buffer[savedIdx++] = NIL;
 
 	while (bytesRead = file->readBlock(page++)) {
+		if (file->buffer[0].key == 0)
+			break;
 		for (int i = 0; i < BUFFSIZE; i++) {
 			//Jest ³añcuch przepe³nien
 			if (file->buffer[i].ofptr != 0) {
@@ -502,7 +504,8 @@ void ISFile::printRecords() {
 	int bytesRead = 0;
 	int page = 0;
 	while (bytesRead = file->readBlock(page++)) {
-		
+		if (file->buffer[0].key == 0)
+			break;
 		for (int i = 0; i < BUFFSIZE; i++) {
 			if (file->buffer[i].ofptr != 0) {
 				vector<Record> vec = getChain(file->buffer[i]);
@@ -532,6 +535,8 @@ void ISFile::printStruct() {
 	int bytesRead = 0;
 	int page = 0;
 	while (bytesRead = file->readBlock(page++)) {
+		if (file->buffer[0].key == 0)
+			break;
 		printf("\tPrzeczytano %d\n", bytesRead);
 		for (int i = 0; i < BUFFSIZE; i++) {
 			printf("%d\t{%d,%d,%d}\t%hd\t%hd\n", file->buffer[i].key, file->buffer[i].data.a, file->buffer[i].data.b, file->buffer[i].data.h, file->buffer[i].deleted, file->buffer[i].ofptr);

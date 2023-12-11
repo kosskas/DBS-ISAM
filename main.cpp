@@ -24,7 +24,9 @@ void generate() {
 
     ///rozkl + 50%
     int rozk[6] = { 0 };
-    for (int i = 0; i < 1000000; i++) {
+    for (int i = 0; i < 1000; i++) {
+        printf("+%d 1 1 1 \n", 1000-i);
+        /*
         int test = los(generator);
         if (test <= rozklad[0]) {//+
             printf("+%d %d %d %d\n", keys(generator), recs(generator), recs(generator), recs(generator));
@@ -51,11 +53,14 @@ void generate() {
             printf("o%\n");
             rozk[5]++;
         }
+        */
         
     }
+    /*
     for (int i = 0; i < 6; i++) {
         printf("%d ", rozk[i]);
     }
+    */
     exit(1);
 }
 int main(int argc, char** argv) {
@@ -152,7 +157,7 @@ int main(int argc, char** argv) {
 
 
     ofstream output;
-    /*
+    
     output.open("glowny.txt");
     for (auto i = glowny.begin(); i != glowny.end(); ++i) {
         output << i->first << " " << i->second << '\n';
@@ -170,7 +175,7 @@ int main(int argc, char** argv) {
         output << i->first << " " << i->second << '\n';
     }
     output.close();
-    */
+    
 
     string nazwa = "operacje" + string(to_string(wspb)) + "-" + string(to_string(alfa)) + ".txt";
     output.open(nazwa);
