@@ -122,7 +122,7 @@ vector<Record> ISFile::getChain(Record first) {
 	return temp;
 }
 
-void ISFile::insertRecord(int key, Data data) {
+void ISFile::insertRecord(int key, Data data,int* sorg) {
 	int found = 0;
 	Record frec;
 	frec.key = key;
@@ -140,7 +140,6 @@ void ISFile::insertRecord(int key, Data data) {
 			//printf("znaleziono miejsce\n");
 			file->buffer[i + 1].key = key;
 			file->buffer[i + 1].data = data;
-
 			file->writeBlock(page);
 			NrecordInMain++;
 			realN++;
@@ -155,8 +154,16 @@ void ISFile::insertRecord(int key, Data data) {
 				file->writeBlock(page);
 			}
 			if (realV == maxOFsize) {
-				//printf("\nBufor pelen - reorganizacja\n");
+				int oldR = nOfReads, oldW = nOfWrites;
+				nOfReads = nOfWrites = 0;
 				reorganiseFile();
+				if (sorg) {
+					*sorg = nOfReads + nOfWrites;
+					printf("Autoreorg - bylo operacji %d\n", *sorg);
+				}
+				nOfReads = oldR;
+				nOfWrites = oldW;
+
 			}
 			return;
 		}
@@ -191,7 +198,6 @@ void ISFile::insertToOf(int key, Data data, int *startptr) {
 	while (ptr != 0) {
 		int ofpage = ceil(double(ptr) / BUFFSIZE) -1;
 		int index = (ptr-1) % BUFFSIZE;
-		//bytesRead = overflow->readBlock(ofpage);
 		if (ofpage != lastPage) {
 			bytesRead = overflow->readBlock(ofpage);
 		}
@@ -202,7 +208,6 @@ void ISFile::insertToOf(int key, Data data, int *startptr) {
 			next = ptr;
 			break;
 		}
-		//prevpage = ofpage;
 		//prev = index+1; ///TO SAMO BO RESZTA Z DZIELENIA??
 		prev = ptr;
 		ptr = overflow->buffer[index].ofptr;
@@ -232,12 +237,9 @@ void ISFile::insertToOf(int key, Data data, int *startptr) {
 				if (prev) {
 					//prev ma wskazywaæ na offset
 					bytesRead = overflow->readBlock(ceil(double(prev) / BUFFSIZE) - 1);
-					//bytesRead = overflow->readBlock(prevpage);
 					overflow->buffer[(prev - 1) % BUFFSIZE].ofptr = offset;
 					overflow->writeBlock(ceil(double(prev) / BUFFSIZE) - 1);
-					//overflow->writeBlock(prevpage);
 				}
-
 				VrecordInOf++;
 				realV++;
 				return;

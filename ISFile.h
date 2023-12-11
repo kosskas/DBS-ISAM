@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <vector>
 #include <sys/stat.h>
+#include <map>
 using namespace std;
 
 class ISFile{
@@ -26,7 +27,7 @@ private:
 
 	Record NIL;
 	int lastFreeOFPage;
-
+	map<char, pair<int, int>> operacja;
 
 	int maxOFsize;
 	bool fileswitcher;
@@ -52,7 +53,7 @@ public:
 	ISFile(uint32_t BUFFSIZE, double alfa);
 	int searchRecord(int key, int* found, Record* rec);
 	void searchInOF2(int ptr, int key, int* found, Record* rec);
-	void insertRecord(int key, Data data);
+	void insertRecord(int key, Data data, int*sorg=NULL);
 	Record removeRecord(int key);
 	void updateRecord(int key, Data data);
 	void updateRecord(int oldkey, int newkey);
