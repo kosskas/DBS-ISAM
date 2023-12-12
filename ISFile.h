@@ -56,10 +56,10 @@ public:
 	void insertRecord(int key, Data data, int*sorg=NULL);
 	Record removeRecord(int key);
 	void updateRecord(int key, Data data);
-	void updateRecord(int oldkey, int newkey);
+	void updateRecord(int oldkey, int newkey, int* sorg = NULL);
 	void clearFile();
 	void reorganiseFile();
-	void info(double alpha);
+	void info();
 	void printRecords();
 	void printIndex();
 	void printStruct();

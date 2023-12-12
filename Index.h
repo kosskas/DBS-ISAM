@@ -3,13 +3,10 @@
 #include <fstream>
 
 using namespace std;
-/*
-Zazwyczaj, bi >> 1 i SIN <<SN, zatem przeszukiwanie indeksu na dysku jest bardzo szybkie
-(lub indeks mieœci siê w pamiêci operacyjnej i w ogóle nie s¹ potrzebne dostêpy do dysku).
 
-UWAGA: Indeksy w organizacji indeksowo-sekwencyjnej nazywamy indeksami rzadkimi (sparse):
-nie wszystkie rekordy s¹ indeksowane, a jedynie tylko pierwsze na stronach obszaru g³ównego.
-*/
+extern int idxReads;
+extern int idxWrites;
+
 class Index{
 public:
 	struct Record {

@@ -1,5 +1,8 @@
 #include "Index.h"
 
+int idxReads = 0;
+int idxWrites = 0;
+
 Index::Index(int32_t BUFFSIZE,int nOfpages, string filename, ios_base::openmode flags) {
 	this->flags = flags;
 	buffer = NULL;
@@ -26,6 +29,7 @@ int Index::readBlock(fstream* currfile, int blockNum) {
 		memset((char*)buffer + bytesRead, 0, sizeof(Record) * BUFFSIZE - bytesRead); //jeœli przeczytano mniej ni¿ ca³¹ stronê, wyzeruj dalsze
 	}
 	//nOfBuff = bytesRead / sizeof(IdxRec);
+	idxReads++;
 	return bytesRead;
 	//gdy przeczytano za ca³y plik bR=0, buf=0,0...
 }
@@ -41,6 +45,7 @@ int Index::writeBlock(fstream* currfile, int blockNum) {
 	written = written - poc;
 	//printf("Zapisano %d\n", written);
 	//w_ptr += sizeof(IdxRec) * BUFFSIZE;
+	idxWrites++;
 	return written;
 }
 

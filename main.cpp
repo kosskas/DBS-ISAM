@@ -3,13 +3,16 @@
 #include <random>
 #include "ISFile.h"
 
+
 using namespace std;
 
+
 void generate() {
+
     random_device rd;
     mt19937 generator(rd());
     //mt19937 generator(2002);
-    uniform_int_distribution<int> keys(1, 0x01F4);//0x01F4
+    uniform_int_distribution<int> keys(1, 0x00017000);//0x01F4
    // uniform_int_distribution<int> keys(1, 0x000FFFFF);//0x01F4
     uniform_int_distribution<int> recs(1, 0x0064);
     uniform_int_distribution<int> los(0, 100);
@@ -24,14 +27,15 @@ void generate() {
 
     ///rozkl + 50%
     int rozk[6] = { 0 };
-    for (int i = 0; i < 1000; i++) {
-        printf("+%d 1 1 1 \n", 1000-i);
-        /*
+    for (int i = 0; i < 100000; i++) {
+        //printf("+%d 1 1 1 \n", 1000-i);
+        
         int test = los(generator);
         if (test <= rozklad[0]) {//+
-            printf("+%d %d %d %d\n", keys(generator), recs(generator), recs(generator), recs(generator));
+            printf("+ %d %d %d %d\n", keys(generator), recs(generator), recs(generator), recs(generator));
             rozk[0]++;
         }
+        /*/
         else if (test <= rozklad[0]+ rozklad[1]) {//-
             printf("-%d\n", keys(generator));
             rozk[1]++;
@@ -56,10 +60,14 @@ void generate() {
         */
         
     }
-    /*
+    
     for (int i = 0; i < 6; i++) {
         printf("%d ", rozk[i]);
     }
+    
+    /*
+        int wspb = atoi(argv[1]);//4;
+    double alfa = atof(argv[2]);//0.5;
     */
     exit(1);
 }
@@ -75,11 +83,11 @@ int main(int argc, char** argv) {
     map<char, pair<int, int>> operacja;
 
 
-    //generate();
+   // generate();
     
 
-    int wspb = atoi(argv[1]);
-    double alfa = atof(argv[2]);
+    int wspb = 4;
+    double alfa = 0.5;
     ISFile isfile(wspb, alfa);
 
     char cmd;
@@ -89,7 +97,7 @@ int main(int argc, char** argv) {
     int reorgop = 0;
 
     while (cin >> cmd) {
-        nOfReads = nOfWrites = 0;
+        idxWrites = idxReads = nOfReads = nOfWrites = 0;
         reorgop = 0;
         if (cmd == 'r') {
             int key = keys(generator);
@@ -121,7 +129,7 @@ int main(int argc, char** argv) {
         if (cmd == 'U') {
             int oldkey = 0;
             cin >> oldkey>>key;
-            isfile.updateRecord(oldkey,key);
+            isfile.updateRecord(oldkey,key,&reorgop);
         }
         if (cmd == 'p')
             isfile.printRecords();
@@ -132,7 +140,7 @@ int main(int argc, char** argv) {
         if (cmd == 'o')
             isfile.reorganiseFile();
         if (cmd == 'n')
-            isfile.info(0.5);
+            isfile.info();
         if (cmd == 'c')
             isfile.clearFile();
         if (cmd == 'q')
@@ -142,7 +150,7 @@ int main(int argc, char** argv) {
             operacja['o'].first += reorgop;
             operacja['o'].second++;
         }
-        operacja[cmd].first += nOfWrites + nOfReads;
+        operacja[cmd].first += nOfReads + nOfWrites + idxWrites + idxReads;
         operacja[cmd].second++;
         if (((isfile.NrecordInMain + isfile.VrecordInOf) % 10 == 0 && (isfile.NrecordInMain + isfile.VrecordInOf) != sum)) {
             sum = (isfile.NrecordInMain + isfile.VrecordInOf);
@@ -152,7 +160,7 @@ int main(int argc, char** argv) {
             nadmiar[sum] = ov;
             indeks[sum] = idx;
         }
-        printf("\n%d\tBylo zapisow %d\t odczytow %d\n",i, nOfWrites, nOfReads);
+        printf("\n%d\tBylo zapisow %d\t odczytow %d\tZapisow idx %d\tOdczytow idx %d\n",i, nOfWrites, nOfReads, idxWrites, idxReads);
     }
 
 

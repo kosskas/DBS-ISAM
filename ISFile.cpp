@@ -155,14 +155,17 @@ void ISFile::insertRecord(int key, Data data,int* sorg) {
 			}
 			if (realV == maxOFsize) {
 				int oldR = nOfReads, oldW = nOfWrites;
-				nOfReads = nOfWrites = 0;
+				int oldIR = idxReads, oldIW = idxWrites;
+				nOfReads = nOfWrites = idxReads= idxWrites=0;
 				reorganiseFile();
 				if (sorg) {
-					*sorg = nOfReads + nOfWrites;
+					*sorg = nOfReads + nOfWrites + idxWrites + idxReads;
 					printf("Autoreorg - bylo operacji %d\n", *sorg);
 				}
 				nOfReads = oldR;
 				nOfWrites = oldW;
+				idxWrites = oldIW;
+				idxReads = oldIR;
 
 			}
 			return;
@@ -375,12 +378,16 @@ void ISFile::updateRecord(int key, Data data) {
 	}
 }
 
-void ISFile::updateRecord(int oldkey, int newkey) {
+void ISFile::updateRecord(int oldkey, int newkey, int* sorg) {
 	//Usuñ
 	int found = 0;
-	Record frec = removeRecord(oldkey);
-	if(frec.key != 0)
-		insertRecord(newkey, frec.data);
+	Record frec;
+	searchRecord(newkey, &found, &frec);
+	if (!found) {
+		frec = removeRecord(oldkey);
+		if (frec.key != 0)
+			insertRecord(newkey, frec.data, sorg);
+	}
 }
 //Raczej nie dojdzie do sytuacji przy reorganizacji ¿e jakieœ strony bêd¹ puste
 //Tyle ile stron tyle w idx, nie ma rozsz idxa
@@ -484,7 +491,7 @@ void ISFile::reorganiseFile() {
 	idxname = newidxname;
 }
 
-void ISFile::info(double alpha) {
+void ISFile::info() {
 	printf("bf = %d\tbi = %d\n", bf, bi);
 	printf("Stron na ob. glowny %d\tStron na of %d\tStron na idx %d\n",mainPages,ofPages,idxPages);
 	printf("Jest rekordow nieusunietych: %d\tW nadmiarze: %d\n", NrecordInMain, VrecordInOf);
@@ -499,7 +506,6 @@ void ISFile::info(double alpha) {
 
 void ISFile::printRecords() {
 	//Nie wypisuj jeœli del
-
 	file->resetPtr();
 	int bytesRead = 0;
 	int page = 0;
